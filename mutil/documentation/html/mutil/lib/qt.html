@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Qt helper library &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../index.html" />
+    <link rel="prev" title="Welcome to Maya open source Python/Qt tools’s documentation!" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../index.html" title="Welcome to Maya open source Python/Qt tools’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="qt-helper-library">
+<h1>Qt helper library<a class="headerlink" href="#qt-helper-library" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mutil.lib.qt">
+<span id="module-documentation"></span><h2>Module documentation<a class="headerlink" href="#module-mutil.lib.qt" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mutil.lib.qt.loadUiFile">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">loadUiFile</tt><big>(</big><em>uiPath</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#loadUiFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.loadUiFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a designer UI xml file in</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uiPath</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to UI file.
+<tt class="docutils literal"><span class="pre">uiPath</span></tt> be a partial path relative to the file calling <a class="reference internal" href="#mutil.lib.qt.loadUiFile" title="mutil.lib.qt.loadUiFile"><tt class="xref py py-func docutils literal"><span class="pre">loadUiFile()</span></tt></a>.
+It is also not necessary to include the <cite>.ui</cite> extension.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Window Class defined by the input UI file</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#mutil.lib.qt.DesignerForm" title="mutil.lib.qt.DesignerForm"><tt class="xref py py-class docutils literal"><span class="pre">DesignerForm</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="mutil.lib.qt.DesignerForm">
+<em class="property">class </em><tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">DesignerForm</tt><big>(</big><em>parent=None</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QWidget</span></tt></p>
+<dl class="classmethod">
+<dt id="mutil.lib.qt.DesignerForm.showUI">
+<em class="property">classmethod </em><tt class="descname">showUI</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.showUI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mutil.lib.qt.DesignerForm.closeUI">
+<em class="property">classmethod </em><tt class="descname">closeUI</tt><big>(</big><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.closeUI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mutil.lib.qt.DesignerForm.getVisibleInstance">
+<em class="property">classmethod </em><tt class="descname">getVisibleInstance</tt><big>(</big><em>create=False</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.getVisibleInstance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.resetSettings">
+<tt class="descname">resetSettings</tt><big>(</big><em>ignore=None</em>, <em>skipGeometry=False</em>, <em>skipWindowState=False</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.resetSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.saveSettings">
+<tt class="descname">saveSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.saveSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.loadSettings">
+<tt class="descname">loadSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.loadSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.saveWindowState">
+<tt class="descname">saveWindowState</tt><big>(</big><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.saveWindowState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save position/size of window</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.loadWindowState">
+<tt class="descname">loadWindowState</tt><big>(</big><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.loadWindowState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load position/size of window</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.DesignerForm.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#mutil.lib.qt.DesignerForm.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.getFocusWidget">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">getFocusWidget</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#getFocusWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.getFocusWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the currently focused widget</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Widget with focus currently</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">QtGui.QWidget or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.getWidgetAtMouse">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">getWidgetAtMouse</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#getWidgetAtMouse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.getWidgetAtMouse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the widget under the mouse</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">QtGui.QWidget or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.qrcToPythonRc">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">qrcToPythonRc</tt><big>(</big><em>path</em>, <em>target</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#qrcToPythonRc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.qrcToPythonRc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a path to a qrc file, create the target file
+This also tries to checkout the file from perforce if it can.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Qrc file path to compile</li>
+<li><strong>target</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Target path for compiled python RC file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.wrapinstance">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">wrapinstance</tt><big>(</big><em>ptr</em>, <em>base=None</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#wrapinstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.wrapinstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility to convert a pointer to a Qt class instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ptr</strong> (<em>long or Swig instance</em>) &#8211; Pointer to QObject in memory</li>
+<li><strong>base</strong> (<em>QtGui.QWidget</em>) &#8211; (Optional) Base class to wrap with (Defaults to QObject, which should handle anything)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">QWidget or subclass instance</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QtGui.QWidget</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.unwrapinstance">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">unwrapinstance</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#unwrapinstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.unwrapinstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility to convert a Qt class instance to a pointer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj</strong> (<em>Qt Object</em>) &#8211; Object to unwrap</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Unwrapped instance pointer</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">long</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.isValid">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">isValid</tt><big>(</big><em>widget</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#isValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.isValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a widget is valid in the backend</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget</strong> &#8211; QtGui.QWidget</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the widget still has a c++ object</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.closeAndCleanup">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">closeAndCleanup</tt><big>(</big><em>widget</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#closeAndCleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.closeAndCleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call close and deleteLater on a widget safely.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Skips the close call if the widget is already not visible.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget</strong> (<em>QtGui.QWidget</em>) &#8211; Widget to close and delete</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.getSettings">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">getSettings</tt><big>(</big><em>appName</em>, <em>unique=False</em>, <em>version=None</em><big>)</big><a class="headerlink" href="#mutil.lib.qt.getSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper to get a settings object for a given app-name
+It uses INI settings format for Maya, and registry format for stand-alone tools.
+Try to ensure that the appName provided is unique, as overlapping appNames
+will try to load/overwrite each others settings file/registry data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>appName</strong> &#8211; string &#8211; Application name to use when creating qtSettings ini file/registry entry.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">QtCore.QSettings &#8211; Settings object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.saveLoadSettings">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">saveLoadSettings</tt><big>(</big><em>widget</em>, <em>ignore=None</em>, <em>save=True</em>, <em>windowStateOnly=False</em>, <em>skipGeometry=False</em>, <em>skipWindowState=None</em>, <em>settings=None</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#saveLoadSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.saveLoadSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save/Load state for a widget and it&#8217;s sub-widgets</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>widget</strong> (<em>QtGui.QWidget</em>) &#8211; Widget to save/load state for</li>
+<li><strong>ignore</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; widgets to ignore</li>
+<li><strong>save</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Save if True, load if False</li>
+<li><strong>windowStateOnly</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Save/Load window state only?</li>
+<li><strong>skipGeometry</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Skip geometry when saving/loading?</li>
+<li><strong>settings</strong> (<em>QSettings or InitialSettings</em>) &#8211; Optional QSettings object to save/load from instead of the default</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.saveLoadState">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">saveLoadState</tt><big>(</big><em>settings</em>, <em>widget</em>, <em>key=None</em>, <em>save=True</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#saveLoadState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.saveLoadState" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to store/load state for a number of widget types</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings</strong> (<em>QtCore.QSettings</em>) &#8211; settings object to use</li>
+<li><strong>widget</strong> (<em>QtGui.QWidget</em>) &#8211; widget to save</li>
+<li><strong>key</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (Optional) key to save it as, uses objectName if None</li>
+<li><strong>save</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Save if True, Load if False</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.toQtObject">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">toQtObject</tt><big>(</big><em>mayaName</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#toQtObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.toQtObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
+If the object does not exist, returns None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mayaName</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Maya name to get a Qt widget for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Widget Object</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">QtCore.QWidget</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.getMayaWindow">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">getMayaWindow</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#getMayaWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.getMayaWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maya main window as a QMainWindow instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">MainWindow instance</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">QtGui.QMainWindow</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.widgetToMayaName">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">widgetToMayaName</tt><big>(</big><em>widget</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#widgetToMayaName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.widgetToMayaName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maya full ui path to the given Qt widget</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget</strong> (<em>QtGui.QWiget or QtCore.QObject</em>) &#8211; Qt widget to get a Maya path for if possible</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Maya UI path, or None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mutil.lib.qt.getParentWidget">
+<tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">getParentWidget</tt><big>(</big><em>widget</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#getParentWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.getParentWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a given QWidget and return it&#8217;s Maya UI parent</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget</strong> (<em>QtGui.QWidget</em>) &#8211; widget to get parent for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Parent widget or None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">QtGui.QWidget</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="mutil.lib.qt.InitialSettings">
+<em class="property">class </em><tt class="descclassname">mutil.lib.qt.</tt><tt class="descname">InitialSettings</tt><big>(</big><em>*args</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a></p>
+<dl class="docutils">
+<dt>A python dictionary with a similar API to QSettings in order to store</dt>
+<dd>a backup of the initial form settings when using loadUiFile</dd>
+</dl>
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.getGroupKey">
+<tt class="descname">getGroupKey</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.getGroupKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.getGroupKey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.setValue">
+<tt class="descname">setValue</tt><big>(</big><em>key</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.setValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.setValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.value">
+<tt class="descname">value</tt><big>(</big><em>key</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.contains">
+<tt class="descname">contains</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.beginGroup">
+<tt class="descname">beginGroup</tt><big>(</big><em>groupName</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.beginGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.beginGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.endGroup">
+<tt class="descname">endGroup</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.endGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.endGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mutil.lib.qt.InitialSettings.group">
+<tt class="descname">group</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/qt.html#InitialSettings.group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.qt.InitialSettings.group" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Qt helper library</a><ul>
+<li><a class="reference internal" href="#module-mutil.lib.qt">Module documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../../index.html"
+                        title="previous chapter">Welcome to Maya open source Python/Qt tools&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/mutil/lib/qt.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../index.html" title="Welcome to Maya open source Python/Qt tools’s documentation!"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne, Danny Wynne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
