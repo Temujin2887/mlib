@@ -1,24 +1,28 @@
 __author__ = 'Nathan'
 
-
 import os
 import sys
 import time
 import logging
+import inspect
 import subprocess
+import __main__
 
 from functools import partial, update_wrapper
 
 qt_lib = None
 has_maya = False
+log = logging.getLogger(__name__)
 
 try:
 	#Attempt to load in PyQt first, as it's the preferred library as of 2014 still.
 	import sip
+
 	sip.setapi('QString', 2)
 	sip.setapi('QVariant', 2)
 
 	from PyQt4 import QtGui, QtCore, uic
+
 	qt_lib = 'pyqt'
 
 except ImportError:
@@ -27,15 +31,18 @@ except ImportError:
 	import PySide
 	from PySide import QtGui, QtCore
 	import pysideuic as uic
+	import xml.etree.ElementTree as xml
+	from cStringIO import StringIO
+
 	QtCore.pyqtSignal = QtCore.Signal
 	QtCore.pyqtSlot = QtCore.Slot
 
 	qt_lib = 'pyside'
 
-
 try:
 	#Try to load maya...
 	import maya.cmds as cmds
+
 	if cmds.internalVar(upd=True) is None:
 		raise SystemError('Standalone uninitialized')
 
@@ -50,19 +57,143 @@ except (ImportError, SystemError, AttributeError):
 	has_maya = False
 
 
-def loadUiFile(path):
+def loadUiFile(uiPath):
 	"""
 	Load a designer UI xml file in
 
-	:param path: Either the relative path to the module calling this function,
-	 or a full path to a file on disk. Can be a partial path.
-	:type path:
+	:param uiPath: Path to UI file.
+		``uiPath`` be a partial path relative to the file calling :py:func:`.loadUiFile`.
+		It is also not necessary to include the `.ui` extension.
+
+	:type uiPath: str
+	:return: Window Class defined by the input UI file
+	:rtype: :py:class:`.DesignerForm`
 	"""
-	pass
+	#Add extension if missing..
+	if not uiPath.endswith('.ui'):
+		uiPath += '.ui'
+
+	if not os.path.isfile(uiPath):
+		#Resolve partial path into full path based on the call stack
+		frame = inspect.currentframe().f_back  #Back up one from the current frame
+		modpath = frame.f_code.co_filename  #Grab the filename from the code object
+		base_directory = os.path.dirname(modpath)
+
+		resolvePath = os.path.join(base_directory, uiPath)
+
+		if os.path.isfile(resolvePath):
+			uiPath = resolvePath
+		else:
+			raise ValueError('Could not locate UI file at path: %s' % uiPath)
+
+	#Load the form class, and establish what the base class for the top level is in order to sub-class it
+	if qt_lib == 'pyqt':
+		#This step is easy with PyQt
+		with open(uiPath, 'r') as f:
+			form_class, base_class = uic.loadUiType(f)
+
+	elif qt_lib == 'pyside':
+		"""
+		Pyside lacks the "loadUiType" command :(
+		so we have to convert the ui file to py code in-memory first
+		and then execute it in a special frame to retrieve the form_class.
+		"""
+		parsed = xml.parse(uiPath)
+		widget_class = parsed.find('widget').get('class')
+		form_class = parsed.find('class').text
+
+		with open(uiPath, 'r') as f:
+			o = StringIO()
+			frame = {}
+
+			#Compile to StringIO object
+			uic.compileUi(f, o, indent=0)
+			pyc = compile(o.getvalue(), '<string>', 'exec')
+			exec pyc in frame
+
+			#Fetch the base_class and form class based on their type in the xml from designer
+			form_class = frame['Ui_%s' % form_class]
+			base_class = eval('QtGui.%s' % widget_class)
 
 
+	class WindowClass(form_class, base_class, DesignerForm): pass
+	WindowClass.__appName = uiPath
+	WindowClass.__uiPath = uiPath
+	return WindowClass
 
 
+class DesignerForm(QtGui.QWidget):
+	__uiPath = None
+	__appName = None
+
+	def __init__(self, parent=None):
+		super(DesignerForm, self).__init__(parent)
+		self.setupUi(self) #Now run the setupUi function for the user
+		self.settings = getSettings(self.__appName, self)
+		QtGui.qApp.aboutToQuit.connect(self.close)
+
+		self.__initial_settings = InitialSettings()
+		saveLoadSettings(self, settings=self.__initial_settings)
+
+	@classmethod
+	def showUI(cls, *args, **kwargs):
+		ukey = __name__ + '_loadUiWindows'
+		windows = __main__.__dict__.setdefault(ukey, {})
+		widget = windows.get(cls.__uiPath)
+		closeAndCleanup(widget)
+
+		windows[cls.__uiPath] = cls(*args, **kwargs)
+		windows[cls.__uiPath].show()
+		return windows[cls.__uiPath]
+
+	@classmethod
+	def closeUI(cls):
+		widget = cls.getVisibleInstance()
+		closeAndCleanup(widget)
+
+	@classmethod
+	def getVisibleInstance(cls, create=False):
+		ukey = __name__ + '_loadUiWindows'
+		windows = __main__.__dict__.setdefault(ukey, {})
+		widget = windows.get(cls.__uiPath)
+		if isValid(widget) and widget.isVisible():
+			return widget
+		if create:
+			return cls.showUI()
+		return None
+
+	def resetSettings(self, ignore=None, skipGeometry=False, skipWindowState=False):
+		log.info('Resetting window settings!')
+		settings = InitialSettings(self.__initial_settings.items())
+
+		if not skipGeometry:
+			geom = settings.value('geometry', None)
+			if geom:
+				settings.setValue('geometry', geom.moveTo(self.geometry().topLeft()))
+
+		saveLoadSettings(self, ignore=ignore, save=False, settings=self.__initial_settings,
+		                 skipGeometry=skipGeometry, skipWindowState=skipWindowState)
+
+	def saveSettings(self, ignore=None):
+		saveLoadSettings(self, ignore)
+
+	def loadSettings(self, ignore=None):
+		saveLoadSettings(self, ignore, False)
+
+	def saveWindowState(self):
+		'Save position/size of window'
+		saveLoadSettings(self, windowStateOnly=True)
+
+	def loadWindowState(self):
+		'Load position/size of window'
+		saveLoadSettings(self, save=False, windowStateOnly=True)
+
+	def close(self):
+		closeAndCleanup(self)
+		try:
+			del self.__initial_settings
+		except AttributeError:
+			pass
 
 ###-----------------------------------###
 ###Convience functions to help with Qt###
@@ -151,8 +282,267 @@ def unwrapinstance(obj):
 	if qt_lib == 'pyqt':
 		return sip.unwrapinstance(obj)
 	elif qt_lib == 'pyside':
-		#TODO: Verify this actually works, from some reading around it most likely doesn't currently...
-		return shiboken.unwrapinstance(obj)
+		return shiboken.getCppPointer(obj)
+
+
+def isValid(widget):
+	"""
+	Check if a widget is valid in the backend
+
+	:param widget: QtGui.QWidget
+	:return: True if the widget still has a c++ object
+	:rtype: bool
+	"""
+	if widget is None:
+		return False
+
+	if qt_lib == 'pyqt':
+		if sip.isdeleted(widget):
+			return False
+	elif qt_lib == 'pyside':
+		if not shiboken.isValid(widget):
+			return False
+	return True
+
+
+def closeAndCleanup(widget):
+	"""
+	Call close and deleteLater on a widget safely.
+
+	.. note::
+		Skips the close call if the widget is already not visible.
+
+	:param widget: Widget to close and delete
+	:type widget: QtGui.QWidget
+	"""
+	if isValid(widget):
+		if widget.isVisible():
+			try:
+				widget.close()
+			except RuntimeError:
+				log.exception('Failed to execute widget close event for: %s' % widget)
+		widget.deleteLater()
+
+
+#Settings management
+def getSettings(appName, unique=False, version=None):
+	"""
+	Helper to get a settings object for a given app-name
+	It uses INI settings format for Maya, and registry format for stand-alone tools.
+	Try to ensure that the appName provided is unique, as overlapping appNames
+	will try to load/overwrite each others settings file/registry data.
+
+	:param appName: string -- Application name to use when creating qtSettings ini file/registry entry.
+	:return: QtCore.QSettings -- Settings object
+	"""
+	ukey = __name__ + '_QSettings'
+	if not unique and (appName, version) in __main__.__dict__.setdefault('lib.ui.Qt_settings', {}):
+		return __main__.__dict__[ukey][(appName, version)]
+
+	if has_maya:
+		settingsPath = os.path.join(cmds.internalVar(upd=True), 'qtSettings', appName+'.ini')
+		settingsPath = os.path.normpath(settingsPath)
+		settings = QtCore.QSettings(settingsPath, QtCore.QSettings.IniFormat)
+		settings.setParent(getMayaWindow())
+	else:
+		settings = QtCore.QSettings('Maya', appName)
+
+	if not unique:
+		__main__.__dict__[ukey][(appName, version)] = settings
+	elif isinstance(unique, QtCore.QObject):
+		settings.setParent(unique)
+
+	if version is not None:
+		if float(settings.value('__version__', version))<version:
+			settings.clear()
+		settings.setValue('__version__', version)
+	return settings
+
+
+def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skipGeometry=False, skipWindowState=None,
+                     settings=None):
+	"""
+	Save/Load state for a widget and it's sub-widgets
+
+	:param widget: Widget to save/load state for
+	:type widget: QtGui.QWidget
+	:param ignore: widgets to ignore
+	:type ignore: list
+	:param save: Save if True, load if False
+	:type save: bool
+	:param windowStateOnly: Save/Load window state only?
+	:type windowStateOnly: bool
+	:param skipGeometry: Skip geometry when saving/loading?
+	:type skipGeometry: bool
+	:param settings: Optional QSettings object to save/load from instead of the default
+	:type settings: QSettings or InitialSettings
+	"""
+	if settings is None:
+		try:
+			settings = widget.settings
+		except AttributeError:
+			log.exception(
+				'Unable to get settings object from widget and no settings object provided... Unable to save settings!\n')
+			return
+
+	if skipWindowState is None:
+		skipWindowState = skipGeometry
+
+	if save:
+		if not skipGeometry:
+			settings.setValue('geometry', widget.geometry())
+		if not skipWindowState:
+			settings.setValue('windowState', widget.saveState())
+	else:
+		if not skipGeometry:
+			geom = settings.value('geometry', None)
+			if geom:
+				widget.setGeometry(geom)
+
+		if not skipWindowState:
+			widget.restoreState(settings.value('windowState', widget.saveState()))
+
+	if windowStateOnly:
+		return
+
+	ignored_names = []
+	for item in ignore or []:
+		if isinstance(item, basestring):
+			ignored_names.append(item)
+		elif isinstance(item, QtCore.QObject):
+			if isValid(item) and widget.objectName():
+				ignored_names.append(widget.objectName())
+
+	items = sorted(dir(widget))
+	for item in items:
+		if (ignore and item in ignored_names) or item.startswith('__'):
+			continue
+		value = getattr(widget, item)
+		if isinstance(value, QtCore.QObject) and hasattr(value, 'objectName'):
+			key = value.objectName()
+			if not key:
+				continue #Don't load un-named objects
+			saveLoadState(settings, value, key, save)
+
+
+def saveLoadState(settings, widget, key=None, save=True):
+	"""
+	How to store/load state for a number of widget types
+
+	:param settings: settings object to use
+	:type settings: QtCore.QSettings
+	:param widget: widget to save
+	:type widget: QtGui.QWidget
+	:param key: (Optional) key to save it as, uses objectName if None
+	:type key: str
+	:param save: Save if True, Load if False
+	:type save: bool
+	"""
+	isinstance(settings, QtCore.QSettings)
+	if not key:
+		key = widget.objectName()
+		if not key:
+			return
+
+	settings.beginGroup('ControlStates')
+	try:
+		if not save:
+			if not settings.contains(key):
+				return
+			value = settings.value(key)
+			if value == 'false':
+				value = False
+			elif value == 'true':
+				value = True
+
+		if isinstance(widget, QtGui.QCheckBox):
+			if save:
+				settings.setValue(key, widget.checkState())
+			else:
+				widget.setCheckState(int(value))
+		elif isinstance(widget, QtGui.QAbstractButton) and widget.isCheckable():
+			if save:
+				settings.setValue(key, widget.isChecked())
+			else:
+				widget.setChecked(value)
+		elif isinstance(widget, QtGui.QComboBox):
+			if save:
+				settings.setValue(key, widget.currentText())
+			else:
+				index = widget.findText(value)
+				if index >= 0:
+					widget.setCurrentIndex(widget.findText(value))
+		elif isinstance(widget, QtGui.QLineEdit):
+			if save:
+				settings.setValue(key, widget.text())
+			else:
+				widget.setText(value)
+		elif isinstance(widget, QtGui.QTextEdit):
+			if save:
+				settings.setValue(key, widget.toHtml())
+			else:
+				widget.setHtml(value)
+		elif isinstance(widget, QtGui.QTabWidget):
+			if save:
+				settings.setValue(key, widget.currentIndex())
+			else:
+				widget.setCurrentIndex(int(value))
+		elif isinstance(widget, QtGui.QSplitter):
+			if save:
+				sizes = widget.sizes()
+				if sum(sizes):
+					settings.setValue(key, sizes)
+			else:
+				widget.setSizes([float(v) for v in value])
+		elif isinstance(widget, QtGui.QSpinBox) or isinstance(widget, QtGui.QDoubleSpinBox):
+			if save:
+				settings.setValue(key, widget.value())
+			else:
+				if isinstance(widget, QtGui.QSpinBox):
+					widget.setValue(int(value))
+				else:
+					widget.setValue(float(value))
+		elif isinstance(widget, QtGui.QDateTimeEdit):
+			if save:
+				settings.setValue(key, widget.dateTime())
+			else:
+				widget.setDateTime(value)
+		elif isinstance(widget, QtGui.QCalendarWidget):
+			if save:
+				settings.setValue(key, widget.selectedDate())
+			else:
+				widget.setSelectedDate(value)
+		elif isinstance(widget, QtGui.QAbstractSlider):
+			if save:
+				settings.setValue(key, widget.sliderPosition())
+			else:
+				widget.setSliderPosition(float(value))
+		elif isinstance(widget, QtGui.QHeaderView):
+			if save:
+				indices = range(widget.count())
+				for i in range(widget.count()):
+					indices[widget.visualIndex(i)] = i
+				settings.setValue(key, widget.saveState())
+				settings.setValue(key + '_order', indices)
+			else:
+				order = settings.value(key + '_order')
+				widget.restoreState(value)
+				indices = [int(v) for v in order]
+				for i, logicalIndex in enumerate(indices):
+					widget.moveSection(widget.visualIndex(logicalIndex), i)
+		elif isinstance(widget, QtGui.QAction) and widget.isCheckable():
+			if save:
+				settings.setValue(key, widget.isChecked())
+			else:
+				widget.setChecked(value)
+		elif isinstance(widget, QtGui.QGroupBox) and widget.isCheckable():
+			if save:
+				settings.setValue(key, widget.isChecked())
+			else:
+				widget.setChecked(value)
+				widget.toggled.emit(value)
+	finally:
+		settings.endGroup()
 
 
 ###-----------------------------------------------------###
@@ -213,3 +603,38 @@ def getParentWidget(widget):
 	"""
 	ptr = apiUI.MQtUtil.getParent(unwrapinstance(widget))
 	return wrapinstance(long(ptr))
+
+
+###------------------------------------------------###
+###InitialSettings object for resetSettings support###
+###------------------------------------------------###
+class InitialSettings(dict):
+	"""
+	A python dictionary with a similar API to QSettings in order to store
+	 a backup of the initial form settings when using loadUiFile
+	"""
+
+	def __init__(self, *args):
+		super(InitialSettings, self).__init__(*args)
+		self._group = []
+
+	def getGroupKey(self, key):
+		return '/'.join(self._group + [key])
+
+	def setValue(self, key, value):
+		self[self.getGroupKey(key)] = value
+
+	def value(self, key, default=None):
+		return self.get(self.getGroupKey(key), default)
+
+	def contains(self, key):
+		return self.getGroupKey(key) in self
+
+	def beginGroup(self, groupName):
+		self._group.append(groupName)
+
+	def endGroup(self):
+		self._group.pop(-1)
+
+	def group(self):
+		return '/'.join(self._group)
