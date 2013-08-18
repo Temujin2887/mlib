@@ -10,34 +10,119 @@ import __main__
 
 from functools import partial, update_wrapper
 
-qt_lib = None
-has_maya = False
 log = logging.getLogger(__name__)
 
-try:
-	#Attempt to load in PyQt first, as it's the preferred library as of 2014 still.
-	import sip
 
-	sip.setapi('QString', 2)
-	sip.setapi('QVariant', 2)
+#Find the best way to provide a switch for the order....
+load_order = ['pyqt', 'pyside']
 
-	from PyQt4 import QtGui, QtCore, uic
+#We have to import these the "hard" way rather than with __import__ because
+# some people like something called "Auto-Completion" :)
+for library in load_order:
+	if library == 'pyside':
+		try:
+			from PySide import QtGui, QtCore
+			import shiboken
+			import pysideuic as uic
+			import xml.etree.cElementTree as xml
+			import cStringIO as StringIO
+		except ImportError:
+			continue
 
-	qt_lib = 'pyqt'
+		try: from PySide import QtDeclarative
+		except ImportError: pass
+		try: from PySide import QtMultimedia
+		except: pass
+		try: from PySide import QtNetwork
+		except: pass
+		try: from PySide import QtOpenGL
+		except: pass
+		try: from PySide import QtOpenVG
+		except: pass
+		try: from PySide import QtScript
+		except: pass
+		try: from PySide import QtScriptTools
+		except: pass
+		try: from PySide import QtSql
+		except: pass
+		try: from PySide import QtSvg
+		except: pass
+		try: from PySide import QtWebKit
+		except: pass
+		try: from PySide import QtXml
+		except: pass
+		try: from PySide import QtXmlPatterns
+		except: pass
+		try: from PySide import phonon
+		except: pass
+		try:
+			from PySide.phonon import Phonon
+			sys.modules[__name__+'.phonon'] = phonon
+		except: pass
 
-except ImportError:
-	#PyQt failed to load, give PySide a shot
-	import shiboken
-	import PySide
-	from PySide import QtGui, QtCore
-	import pysideuic as uic
-	import xml.etree.ElementTree as xml
-	from cStringIO import StringIO
+		QtCore.pyqtSignal = QtCore.Signal
+		QtCore.pyqtSlot = QtCore.Slot
+		QtCore.pyqtProperty = QtCore.Property
 
-	QtCore.pyqtSignal = QtCore.Signal
-	QtCore.pyqtSlot = QtCore.Slot
+		qt_lib = library
+		break
 
-	qt_lib = 'pyside'
+	elif library == 'pyqt':
+		import sip
+		try:
+			sip.setapi('QDate', 2)
+			sip.setapi('QDateTime', 2)
+			sip.setapi('QString', 2)
+			sip.setapi('QTextStream', 2)
+			sip.setapi('QTime', 2)
+			sip.setapi('QUrl', 2)
+			sip.setapi('QVariant', 2)
+		except ValueError:
+			log.exception('Failed to set sip api version for PyQt4, have you imported it before this?')
+
+		try:
+			from PyQt4 import QtGui, QtCore, uic
+		except ImportError:
+			continue
+
+		try: from PyQt4 import QtDeclarative
+		except ImportError: pass
+		try: from PyQt4 import QtMultimedia
+		except: pass
+		try: from PyQt4 import QtNetwork
+		except: pass
+		try: from PyQt4 import QtOpenGL
+		except: pass
+		try: from PyQt4 import QtOpenVG
+		except: pass
+		try: from PyQt4 import QtScript
+		except: pass
+		try: from PyQt4 import QtScriptTools
+		except: pass
+		try: from PyQt4 import QtSql
+		except: pass
+		try: from PyQt4 import QtSvg
+		except: pass
+		try: from PyQt4 import QtWebKit
+		except: pass
+		try: from PyQt4 import QtXml
+		except: pass
+		try: from PyQt4 import QtXmlPatterns
+		except: pass
+		try: from PyQt4 import phonon
+		except: pass
+		try:
+			from PyQt4.phonon import Phonon
+			sys.modules[__name__+'.phonon'] = phonon
+		except: pass
+
+		QtCore.Signal = QtCore.pyqtSignal
+		QtCore.Slot = QtCore.pyqtSlot
+		QtCore.Property = QtCore.pyqtProperty
+
+		qt_lib = library
+		break
+
 
 try:
 	#Try to load maya...
@@ -53,6 +138,7 @@ try:
 
 	#Define Callback function to handle our callback wrapper
 	mel.eval("global proc Callback(string $description){};")
+	has_maya = True
 except (ImportError, SystemError, AttributeError):
 	has_maya = False
 
@@ -115,47 +201,84 @@ def loadUiFile(uiPath):
 			form_class = frame['Ui_%s' % form_class]
 			base_class = eval('QtGui.%s' % widget_class)
 
-
 	class WindowClass(form_class, base_class, DesignerForm): pass
-	WindowClass.__appName = uiPath
-	WindowClass.__uiPath = uiPath
+	WindowClass._appName = uiPath
+	WindowClass._uiPath = uiPath
+	WindowClass.ensurePolished = DesignerForm.ensurePolished
 	return WindowClass
 
 
 class DesignerForm(QtGui.QWidget):
-	__uiPath = None
-	__appName = None
+	_uiPath = None
+	_appName = None
+	_manage_settings = True
 
 	def __init__(self, parent=None):
 		super(DesignerForm, self).__init__(parent)
 		self.setupUi(self) #Now run the setupUi function for the user
-		self.settings = getSettings(self.__appName, self)
 		QtGui.qApp.aboutToQuit.connect(self.close)
 
+		#Store initial settings for reset
 		self.__initial_settings = InitialSettings()
 		saveLoadSettings(self, settings=self.__initial_settings)
 
+		#Create a settings object for the user if they have us managing their settings
+		if self._manage_settings:
+			self.__has_loaded = False
+			self.settings = getSettings(self._appName, self)
+
+	def showEvent(self, event):
+		#If we manage settings, load the state on first show
+		if not self.__has_loaded and self._manage_settings:
+			self.loadSettings()
+			self.__has_loaded = True
+
+	def closeEvent(self, event):
+		#If we manage settings save the settings on close
+		if self._manage_settings:
+			self.saveSettings()
+
 	@classmethod
 	def showUI(cls, *args, **kwargs):
+		"""
+		Show a single instance of this form class, closes any previous instances regardless of reloads
+		All arguments pass through to the base class.
+
+		.. todo::
+			Implement multi-instance window support for windows that want it.
+		"""
 		ukey = __name__ + '_loadUiWindows'
 		windows = __main__.__dict__.setdefault(ukey, {})
-		widget = windows.get(cls.__uiPath)
+		widget = windows.get(cls._uiPath)
 		closeAndCleanup(widget)
 
-		windows[cls.__uiPath] = cls(*args, **kwargs)
-		windows[cls.__uiPath].show()
-		return windows[cls.__uiPath]
+		windows[cls._uiPath] = cls(*args, **kwargs)
+		windows[cls._uiPath].show()
+		return windows[cls._uiPath]
 
 	@classmethod
 	def closeUI(cls):
+		"""
+		Close the visible instance of this form class
+		"""
 		widget = cls.getVisibleInstance()
 		closeAndCleanup(widget)
 
 	@classmethod
 	def getVisibleInstance(cls, create=False):
+		"""
+		Get the visible instance of this form class.
+		If create is True, and this window does not already exists,
+		it will return the result of showUI with no arguments.
+
+		:param create: Create this ui if none exists
+		:type create: bool
+		:return: The visible instance if one exists
+		:rtype: :py:class:`.DesignerForm` or None
+		"""
 		ukey = __name__ + '_loadUiWindows'
 		windows = __main__.__dict__.setdefault(ukey, {})
-		widget = windows.get(cls.__uiPath)
+		widget = windows.get(cls._uiPath)
 		if isValid(widget) and widget.isVisible():
 			return widget
 		if create:
@@ -163,6 +286,14 @@ class DesignerForm(QtGui.QWidget):
 		return None
 
 	def resetSettings(self, ignore=None, skipGeometry=False, skipWindowState=False):
+		"""
+		Reset the window to it's "initial" state from when the UI for was loaded
+
+
+		:param ignore:
+		:param skipGeometry:
+		:param skipWindowState:
+		"""
 		log.info('Resetting window settings!')
 		settings = InitialSettings(self.__initial_settings.items())
 
@@ -175,21 +306,40 @@ class DesignerForm(QtGui.QWidget):
 		                 skipGeometry=skipGeometry, skipWindowState=skipWindowState)
 
 	def saveSettings(self, ignore=None):
+		"""
+
+		:param ignore:
+		"""
 		saveLoadSettings(self, ignore)
 
 	def loadSettings(self, ignore=None):
+		"""
+
+		:param ignore:
+		"""
 		saveLoadSettings(self, ignore, False)
 
 	def saveWindowState(self):
-		'Save position/size of window'
+		"""
+		Save position/size of window
+		"""
 		saveLoadSettings(self, windowStateOnly=True)
 
 	def loadWindowState(self):
-		'Load position/size of window'
+		"""
+		Load position/size of window
+		"""
 		saveLoadSettings(self, save=False, windowStateOnly=True)
 
 	def close(self):
-		closeAndCleanup(self)
+		"""
+		Slight tweak to the default close function, cleans up the window to avoid memory leaking.
+		.. todo::
+			Investigate if this is something people actually want, it seems safer this way, but I'm paranoid.
+		"""
+		QtGui.QWidget.close(self)
+		if isValid(self):
+			self.deleteLater()
 		try:
 			del self.__initial_settings
 		except AttributeError:
@@ -317,10 +467,7 @@ def closeAndCleanup(widget):
 	"""
 	if isValid(widget):
 		if widget.isVisible():
-			try:
-				widget.close()
-			except RuntimeError:
-				log.exception('Failed to execute widget close event for: %s' % widget)
+			widget.close()
 		widget.deleteLater()
 
 
