@@ -23,7 +23,7 @@ Goals:
 
 Questions:
 	User shelves versus "Shared" shelves?
-	
+
 """
 
 def install_toolbar():
@@ -45,11 +45,34 @@ class MayaShelfBar(QtGui.QToolBar):
 		self.setWindowTitle('Maya Shelves 2.0')
 		self.tabs = MayaShelves(self)
 		self.addWidget(self.tabs)
-		self.orientationChanged.connect(self.updateSizing)
-		self.updateSizing()
+		self.setFloatable(False)
 
-	def updateSizing(self):
-		if self.orientation() == QtCore.Qt.Vertical:
+		self._last_state = (0, 0)
+
+	def resizeEvent(self, event):
+		QtGui.QToolBar.resizeEvent(self, event)
+		orientation = self.orientation()
+		if self.parent():
+			area = self.parent().toolBarArea(self)
+		else:
+			area = 0
+
+		if (area, orientation) != self._last_state:
+			self.updateLayout(area, orientation)
+			self._last_state = (area, orientation)
+
+
+	def updateLayout(self, area, orientation):
+		if area == QtCore.Qt.TopToolBarArea:
+			self.tabs.setTabPosition(self.tabs.North)
+		elif area == QtCore.Qt.BottomToolBarArea:
+			self.tabs.setTabPosition(self.tabs.South)
+		elif area == QtCore.Qt.LeftToolBarArea:
+			self.tabs.setTabPosition(self.tabs.West)
+		elif area == QtCore.Qt.RightToolBarArea:
+			self.tabs.setTabPosition(self.tabs.East)
+
+		if orientation == QtCore.Qt.Vertical:
 			self.setMaximumWidth(73)
 			self.setMaximumHeight(QWIDGETSIZE_MAX)
 		else:
@@ -70,7 +93,7 @@ class MayaShelves(QtGui.QTabWidget):
 
 
 		lyt = FlowLayout(contents)
-		contents.setContentsMargins(2, 5, 2, 2)
+		contents.setContentsMargins(0, 0, 0, 0)
 		contents.setLayout(lyt)
 
 		lyt.addWidget(self.createToolButton())
@@ -82,11 +105,14 @@ class MayaShelves(QtGui.QTabWidget):
 		btn = QtGui.QToolButton()
 		btn.setStyleSheet('QToolButton{margin: 0px 0px 0px 0px; border:none;}')
 		btn.setText('TEST')
+		#btn.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 		btn.setAutoRaise(True)
 		btn.setMouseTracking(True)
 		btn.setIcon(self.makeIcon(':/sphere.png'))
 		btn.setIconSize(QtCore.QSize(32, 32))
-		btn.setFixedSize(32, 32)
+		btn.setMenu(QtGui.QMenu(btn))
+		btn.menu().addAction('TEST0')
+		btn.menu().addAction('TEST1')
 		return btn
 
 	def makeIcon(self, path):
