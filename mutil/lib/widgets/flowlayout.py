@@ -15,6 +15,9 @@ class FlowLayout(QtGui.QLayout):
 		self.itemList = []
 
 	def __del__(self):
+		self.takeAll()
+
+	def takeAll(self):
 		item = self.takeAt(0)
 		while item:
 			item = self.takeAt(0)
@@ -33,7 +36,6 @@ class FlowLayout(QtGui.QLayout):
 	def takeAt(self, index):
 		if 0 <= index < len(self.itemList):
 			return self.itemList.pop(index)
-
 		return None
 
 	def expandingDirections(self):
