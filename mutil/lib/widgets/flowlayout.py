@@ -13,6 +13,7 @@ class FlowLayout(QtGui.QLayout):
 
 		self.setSpacing(spacing)
 		self.itemList = []
+		self.wrapOverflow = 0
 
 	def __del__(self):
 		self.takeAll()
@@ -52,6 +53,10 @@ class FlowLayout(QtGui.QLayout):
 		super(FlowLayout, self).setGeometry(rect)
 		self.doLayout(rect, False)
 
+	def setWrapOverflow(self, overflow):
+		self.wrapOverflow = overflow
+		self.doLayout(self.geometry(), False)
+
 	def sizeHint(self):
 		return self.minimumSize()
 
@@ -72,11 +77,11 @@ class FlowLayout(QtGui.QLayout):
 		for item in self.itemList:
 			spaceX = self.spacing()
 			spaceY = self.spacing()
-			nextX = x + item.sizeHint().width() + spaceX
-			if nextX - spaceX > rect.right() and lineHeight > 0:
+			nextX = x + spaceX + item.sizeHint().width()
+			if nextX - spaceX - self.wrapOverflow > rect.right() and lineHeight > 0:
 				x = rect.x()
 				y = y + lineHeight + spaceY
-				nextX = x + item.sizeHint().width() + spaceX
+				nextX = x + spaceX + item.sizeHint().width()
 				lineHeight = 0
 
 			if not testOnly:
