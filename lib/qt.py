@@ -209,6 +209,10 @@ def loadUiFile(uiPath):
 
 
 class DesignerForm(QtGui.QWidget):
+	"""
+	Base class for widgets loaded with loadUiType.
+	This class provides convenience functions, and manages a few of the more specific features of the loadUiFile function.
+	"""
 	_uiPath = None
 	_appName = None
 	_manage_settings = True
