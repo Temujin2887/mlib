@@ -7,10 +7,17 @@ def Enum(*sequential, **named):
 	Enum Class Factory
 
 	Works using an enumerated list:
+
 	>>> Types = Enum('test1', 'test2', 'test3')
 
 	Or using key/value pairs:
+
 	>>> Types = Enum(test1=0, test2=1, test3=2)
+
+	Or a mix:
+
+	>>> Types = Enum('test1', 'test2', 'test3', test=45)
+
 
 	And conversion for keys<==>values:
 
@@ -33,7 +40,10 @@ def Enum(*sequential, **named):
 	enums = base_enums.copy()
 	enums['key'] = reverse.get
 	enums['value'] = enums.get
-	metaclass = type('Enum', (type,), {'__repr__':lambda cls: repr(base_enums)})
+	def __repr__(cls):
+		arguments = map(repr, sequential)+['%s=%s'%(key, value) for key, value in named.items()]
+		return 'Enum(%s)'%', '.join(arguments)
+	metaclass = type('Enum', (type,), {'__repr__':__repr__})
 	return metaclass('Enum', (object,), enums)
 
 class PropertyDict(dict):
