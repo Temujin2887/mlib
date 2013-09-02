@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
    mutil/lib/qt
+   mutil/lib/misc
+   mutil/lib/types
 
 
 

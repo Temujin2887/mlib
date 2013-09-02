@@ -234,7 +234,6 @@ class ShelfTabs(QtGui.QTabWidget):
 		tabWidget.dropEvent(tabDropEvent)
 
 
-
 class Shelf(QtGui.QScrollArea):
 	toolButtonStyleChanged = QtCore.Signal(QtCore.Qt.ToolButtonStyle)
 	def __init__(self, parent=None):
@@ -274,6 +273,12 @@ class Shelf(QtGui.QScrollArea):
 			btn.setText('test longer name %s\nsecond line of text\nthird now...'%i)
 			self.shelfLayout.addWidget(btn)
 			self.toolButtonStyleChanged.connect(btn.setToolButtonStyle)
+
+	@classmethod
+	def createFromPath(cls, path):
+		shelf = cls()
+		shelf.load(path)
+		return shelf
 
 	def load(self, path):
 		pass
@@ -412,6 +417,8 @@ class ShelfButton(QtGui.QToolButton):
 		#print 'Mouse Move'
 		if event.buttons() == QtCore.Qt.LeftButton:
 			if not self.rect().contains(event.pos()):
+				#self.hide()
+				#self.parent().layout().removeWidget(self)
 				drag = QtGui.QDrag(self)
 				data = QtCore.QMimeData()
 				data.setText(self.text())

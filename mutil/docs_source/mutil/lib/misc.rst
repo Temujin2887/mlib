@@ -1,11 +1,11 @@
-Qt helper library
-==================
+Misc helper library
+====================
 
 
 Module documentation
 ---------------------
 
-.. automodule:: mutil.lib.qt
+.. automodule:: mutil.lib.misc
 	:members:
 	:member-order: bysource
 	:undoc-members:
