@@ -1,4 +1,5 @@
 Maya Open Source Python/Qt Tools
 =================================
 
-[Check out the full documentation here.](http://temujin2887.github.io/maya)
+[Github Project Home](https://github.com/Temujin2887/maya)
+[Project Documentation(http://temujin2887.github.io/maya)
