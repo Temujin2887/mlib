@@ -338,8 +338,10 @@ class DesignerForm(QtGui.QWidget):
 	def close(self):
 		"""
 		Slight tweak to the default close function, cleans up the window to avoid memory leaking.
+
 		.. todo::
 			Investigate if this is something people actually want, it seems safer this way, but I'm paranoid.
+
 		"""
 		QtGui.QWidget.close(self)
 		if isValid(self):
