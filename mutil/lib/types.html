@@ -57,10 +57,18 @@
 <dt id="mutil.lib.types.Enum">
 <tt class="descclassname">mutil.lib.types.</tt><tt class="descname">Enum</tt><big>(</big><em>*sequential</em>, <em>**named</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/types.html#Enum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.types.Enum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enum Class Factory</p>
-<p>Works using an enumerated list:
-&gt;&gt;&gt; Types = Enum(&#8216;test1&#8217;, &#8216;test2&#8217;, &#8216;test3&#8217;)</p>
-<p>Or using key/value pairs:
-&gt;&gt;&gt; Types = Enum(test1=0, test2=1, test3=2)</p>
+<p>Works using an enumerated list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Types</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or using key/value pairs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Types</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">test1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">test2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">test3</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or a mix:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Types</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>And conversion for keys&lt;==&gt;values:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Types</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="go">test1</span>
