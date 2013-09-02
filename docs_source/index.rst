@@ -13,7 +13,6 @@ Contents
 .. toctree::
 	:maxdepth: 2
 
-	includeme
 	mutil/lib/qt
 	mutil/lib/misc
 	mutil/lib/types
