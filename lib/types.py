@@ -5,26 +5,36 @@ __author__ = 'Nathan'
 def Enum(*sequential, **named):
 	"""
 	Enum Class Factory
-	Works using an enumerated list::
-		Types = Enum('test1', 'test2', 'test3')
-	Or using key/value pairs::
-		Types = Enum(test1=0, test2=1, test3=2)
 
-	And conversion for keys<==>values::
-		print Types.key(0)
-		print Types.value('test1')
+	Works using an enumerated list:
+	>>> Types = Enum('test1', 'test2', 'test3')
 
-	The Enum objects provide dot access for the values::
-		print Types.test1
+	Or using key/value pairs:
+	>>> Types = Enum(test1=0, test2=1, test3=2)
+
+	And conversion for keys<==>values:
+
+	>>> print Types.key(0)
+	test1
+
+	>>> print Types.value('test1')
+	0
+
+	The Enum objects provide dot access for the values:
+
+	>>> print Types.test1
+	0
 
 	:return: Created enum
 	:rtype: :py:class:`.Enum`
 	"""
-	enums = dict(zip(sequential, range(len(sequential))), **named)
-	reverse = dict((value, key) for key, value in enums.iteritems())
+	base_enums = dict(zip(sequential, range(len(sequential))), **named)
+	reverse = dict((value, key) for key, value in base_enums.iteritems())
+	enums = base_enums.copy()
 	enums['key'] = reverse.get
 	enums['value'] = enums.get
-	return type('Enum', (), enums)
+	metaclass = type('Enum', (type,), {'__repr__':lambda cls: repr(base_enums)})
+	return metaclass('Enum', (object,), enums)
 
 class PropertyDict(dict):
 	"""

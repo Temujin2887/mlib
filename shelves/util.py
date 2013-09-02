@@ -5,7 +5,7 @@ import json
 import logging
 import __main__
 
-from ..lib import
+from ..lib import misc
 
 import maya.cmds as cmds
 
@@ -61,7 +61,7 @@ def validateGuids(items):
 	for item in items:
 		guid = item.get('guid')
 		if not guid:
-			item['guid'] = ''
+			item['guid'] = misc.generateGuid()
 	return items
 
 
