@@ -3,6 +3,8 @@ __author__ = 'Nathan'
 import logging
 import __main__
 
+from functools import partial
+
 from ..lib import qt
 from ..lib.qt import QtGui, QtCore
 from ..lib.widgets import flowlayout
@@ -54,6 +56,11 @@ class ShelfBar(QtGui.QToolBar):
 		self.toolButtonStyleChanged.connect(self.shelfTabs.toolButtonStyleChanged.emit)
 		self.toolButtonStyleChanged.connect(self.updateLayout)
 
+		self.shelfOpts.buildOptionsMenu.connect(self.buildOptionsMenu)
+		self.shelfOpts.buildSwitcherMenu.connect(self.buildSwitcherMenu)
+
+		self.orientationChanged.connect(partial(self.updateLayout, None))
+
 		self.addWidget(self.shelfOpts)
 		self.addWidget(self.shelfTabs)
 		self.setFloatable(False)
@@ -62,6 +69,26 @@ class ShelfBar(QtGui.QToolBar):
 		self.setMinimumSize(QtCore.QSize(32, 32))
 
 		#self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+	def buildSwitcherMenu(self):
+		menu = QtGui.QMenu(self)
+		for tabIndex in range(self.shelfTabs.count()):
+			label = self.shelfTabs.tabText(tabIndex)
+			action = QtGui.QWidgetAction(menu)
+			btn = QtGui.QRadioButton(label, menu)
+			action.setDefaultWidget(btn)
+			if self.shelfTabs.currentIndex() == tabIndex:
+				btn.setChecked(True)
+			btn.clicked.connect(action.trigger)
+			btn.clicked.connect(menu.close)
+			action.triggered.connect(partial(self.shelfTabs.setCurrentIndex, tabIndex))
+			menu.addAction(action)
+
+		menu.exec_(QtGui.QCursor.pos())
+
+	def buildOptionsMenu(self):
+		menu = QtGui.QMenu(self)
+		menu.exec_(QtGui.QCursor.pos())
 
 	def resizeEvent(self, event):
 		QtGui.QToolBar.resizeEvent(self, event)
@@ -75,14 +102,10 @@ class ShelfBar(QtGui.QToolBar):
 			self._last_state = (area, orientation)
 			self.updateLayout(self._last_state)
 
+		self.update()
+		self.updateGeometry()
 
 	def sizeHint(self):
-		if self.parent():
-			area = self.parent().toolBarArea(self)
-		else:
-			area = 0
-		if area == QtCore.Qt.LeftToolBarArea:
-			return QtCore.QSize(64, 128)
 		return QtCore.QSize(64, 64)
 
 	def updateLayout(self, state=None):
@@ -90,10 +113,15 @@ class ShelfBar(QtGui.QToolBar):
 			state = self._last_state
 		area, orientation = state
 
-
 		self.shelfTabs.setToolBarArea(area)
 		self.shelfTabs.setOrientation(orientation)
 		self.shelfOpts.setOrientation(orientation)
+
+		if self.isFloating():
+			self.setFixedSize(64, 64)
+		else:
+			self.setFixedSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)
+
 
 		if orientation == QtCore.Qt.Vertical:
 			if self.toolButtonStyle() == QtCore.Qt.ToolButtonTextBesideIcon:
@@ -108,37 +136,65 @@ class ShelfBar(QtGui.QToolBar):
 				self.setMaximumHeight(73)
 			self.setMaximumWidth(QWIDGETSIZE_MAX)
 
+		self.updateGeometry()
+
+
 class ShelfOptions(QtGui.QFrame):
+	buildSwitcherMenu = QtCore.Signal()
+	buildOptionsMenu = QtCore.Signal()
+
 	def __init__(self, parent=None):
 		super(ShelfOptions, self).__init__(parent)
 		self.optionsMenu = QtGui.QToolButton(self)
 		self.switcherMenu = QtGui.QToolButton(self)
 
-	def setOrientation(self, orientation):
-		if self.layout():
-			#Shortcut if direction hasnt changed
-			hbox = isinstance(self.layout(), QtGui.QHBoxLayout)
-			if orientation == QtCore.Qt.Vertical and hbox:
-				return
-			if orientation == QtCore.Qt.Horizontal and not hbox:
-				return
+		self.optionsMenu.setAutoRaise(True)
+		self.switcherMenu.setAutoRaise(True)
 
-			#Remove widgets and delete layout before creating a new oen
-			for child in self.layout().children():
-				self.layout().removeWidget(child)
-			self.layout().deleteLater()
+		self.optionsMenu.clicked.connect(partial(self.buildOptionsMenu.emit))
+		self.switcherMenu.clicked.connect(partial(self.buildSwitcherMenu.emit))
 
-		#Create layout
-		if orientation == QtCore.Qt.Vertical:
-			self.setLayout(QtGui.QHBoxLayout(self))
-		else:
-			self.setLayout(QtGui.QVBoxLayout(self))
+		self.optionsMenu.setIcon(makeIcon(':/arrowDown.png'))
+		self.switcherMenu.setIcon(makeIcon(':/shelfTab.png'))
 
-		#Parent widgets
+		self.optionsMenu.setStyleSheet('QToolButton{margin: 0px 0px 0px 0px; border:none;}')
+		self.switcherMenu.setStyleSheet('QToolButton{margin: 0px 0px 0px 0px; border:none;}')
+
+		self.optionsMenu.setIconSize(QtCore.QSize(16, 16))
+		self.switcherMenu.setIconSize(QtCore.QSize(16, 16))
+
+		self.line = QtGui.QFrame(self)
+		self.line.setGeometry(QtCore.QRect(3, 3, 3, 3))
+		self.line.setFrameShape(QtGui.QFrame.HLine)
+		self.line.setFrameShadow(QtGui.QFrame.Raised)
+
+		self.boxlayout = QtGui.QBoxLayout(QtGui.QBoxLayout.TopToBottom, self)
+		self.setLayout(self.boxlayout)
 		self.layout().setContentsMargins(2, 2, 2, 2)
-		self.layout().setSpacing(2)
+		self.layout().setSpacing(0)
+
+		self.spacer = QtGui.QSpacerItem(16, 16, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
 		self.layout().addWidget(self.switcherMenu)
+		self.layout().addWidget(self.line)
 		self.layout().addWidget(self.optionsMenu)
+
+	def setOrientation(self, orientation):
+		for i in range(self.layout().count()):
+			if self.layout().itemAt(i) is self.spacer:
+				self.layout().takeAt(i)
+				break
+
+		if orientation == QtCore.Qt.Vertical:
+			self.boxlayout.addItem(self.spacer)
+			self.boxlayout.setDirection(self.boxlayout.LeftToRight)
+			self.line.setFrameShape(QtGui.QFrame.VLine)
+			self.spacer.changeSize(64, 16, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+		else:
+			self.boxlayout.insertItem(0, self.spacer)
+			self.boxlayout.setDirection(self.boxlayout.TopToBottom)
+			self.line.setFrameShape(QtGui.QFrame.HLine)
+			self.spacer.changeSize(16, 64, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+
 
 class ShelfTabs(QtGui.QTabWidget):
 	toolButtonStyleChanged = QtCore.Signal(QtCore.Qt.ToolButtonStyle)
@@ -163,6 +219,7 @@ class ShelfTabs(QtGui.QTabWidget):
 	def setOrientation(self, orientation):
 		if orientation == QtCore.Qt.Vertical:
 			pass
+
 		for tabIndex in range(self.count()):
 			tab = self.widget(tabIndex)
 			tab.setOrientation(orientation)
@@ -468,11 +525,8 @@ class ShelfButton(QtGui.QToolButton):
 
 
 
-
-
-
 def makeIcon(path):
-	pixmap_normal = QtGui.QPixmap(path)
+	pixmap_normal = QtGui.QPixmap(path).scaled(64, 64, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 	pixmap_over = pixmap_normal.copy()
 	painter = QtGui.QPainter(pixmap_over)
 
