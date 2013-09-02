@@ -50,7 +50,6 @@
   <h1>Source code for mutil.lib.qt</h1><div class="highlight"><pre>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Nathan&#39;</span>
 
-
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -61,37 +60,124 @@
 
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">update_wrapper</span>
 
-<span class="n">qt_lib</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="n">has_maya</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
-<span class="k">try</span><span class="p">:</span>
-	<span class="c">#Attempt to load in PyQt first, as it&#39;s the preferred library as of 2014 still.</span>
-	<span class="kn">import</span> <span class="nn">sip</span>
-	<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QString&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-	<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QVariant&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
-	<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">uic</span>
-	<span class="n">qt_lib</span> <span class="o">=</span> <span class="s">&#39;pyqt&#39;</span>
+<span class="c">#Find the best way to provide a switch for the order....</span>
+<span class="n">load_order</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;pyqt&#39;</span><span class="p">,</span> <span class="s">&#39;pyside&#39;</span><span class="p">]</span>
 
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-	<span class="c">#PyQt failed to load, give PySide a shot</span>
-	<span class="kn">import</span> <span class="nn">shiboken</span>
-	<span class="kn">import</span> <span class="nn">PySide</span>
-	<span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
-	<span class="kn">import</span> <span class="nn">pysideuic</span> <span class="kn">as</span> <span class="nn">uic</span>
-	<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">xml</span>
-	<span class="kn">from</span> <span class="nn">cStringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="c">#We have to import these the &quot;hard&quot; way rather than with __import__ because</span>
+<span class="c"># some people like something called &quot;Auto-Completion&quot; :)</span>
+<span class="k">for</span> <span class="n">library</span> <span class="ow">in</span> <span class="n">load_order</span><span class="p">:</span>
+	<span class="k">if</span> <span class="n">library</span> <span class="o">==</span> <span class="s">&#39;pyside&#39;</span><span class="p">:</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+			<span class="kn">import</span> <span class="nn">shiboken</span>
+			<span class="kn">import</span> <span class="nn">pysideuic</span> <span class="kn">as</span> <span class="nn">uic</span>
+			<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="kn">as</span> <span class="nn">xml</span>
+			<span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+			<span class="k">continue</span>
 
-	<span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span>
-	<span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Slot</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtDeclarative</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtMultimedia</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtNetwork</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtOpenGL</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtOpenVG</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtScript</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtScriptTools</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtSql</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtSvg</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtWebKit</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtXml</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtXmlPatterns</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">phonon</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">PySide.phonon</span> <span class="kn">import</span> <span class="n">Phonon</span>
+			<span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">__name__</span><span class="o">+</span><span class="s">&#39;.phonon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phonon</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
 
-	<span class="n">qt_lib</span> <span class="o">=</span> <span class="s">&#39;pyside&#39;</span>
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span>
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Slot</span>
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtProperty</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Property</span>
+
+		<span class="n">qt_lib</span> <span class="o">=</span> <span class="n">library</span>
+		<span class="k">break</span>
+
+	<span class="k">elif</span> <span class="n">library</span> <span class="o">==</span> <span class="s">&#39;pyqt&#39;</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">sip</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QDate&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QDateTime&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QString&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QTextStream&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QTime&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QUrl&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">sip</span><span class="o">.</span><span class="n">setapi</span><span class="p">(</span><span class="s">&#39;QVariant&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Failed to set sip api version for PyQt4, have you imported it before this?&#39;</span><span class="p">)</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">uic</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+			<span class="k">continue</span>
+
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtDeclarative</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtMultimedia</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtNetwork</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtOpenGL</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtOpenVG</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtScript</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtScriptTools</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtSql</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtSvg</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtWebKit</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtXml</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtXmlPatterns</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">phonon</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">PyQt4.phonon</span> <span class="kn">import</span> <span class="n">Phonon</span>
+			<span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">__name__</span><span class="o">+</span><span class="s">&#39;.phonon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phonon</span>
+		<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span>
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">Slot</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span>
+		<span class="n">QtCore</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtProperty</span>
+
+		<span class="n">qt_lib</span> <span class="o">=</span> <span class="n">library</span>
+		<span class="k">break</span>
 
 
 <span class="k">try</span><span class="p">:</span>
 	<span class="c">#Try to load maya...</span>
 	<span class="kn">import</span> <span class="nn">maya.cmds</span> <span class="kn">as</span> <span class="nn">cmds</span>
+
 	<span class="k">if</span> <span class="n">cmds</span><span class="o">.</span><span class="n">internalVar</span><span class="p">(</span><span class="n">upd</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
 		<span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s">&#39;Standalone uninitialized&#39;</span><span class="p">)</span>
 
@@ -102,6 +188,7 @@
 
 	<span class="c">#Define Callback function to handle our callback wrapper</span>
 	<span class="n">mel</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&quot;global proc Callback(string $description){};&quot;</span><span class="p">)</span>
+	<span class="n">has_maya</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">SystemError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
 	<span class="n">has_maya</span> <span class="o">=</span> <span class="bp">False</span>
 
@@ -110,11 +197,13 @@
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Load a designer UI xml file in</span>
 
-<span class="sd">	:param uiPath: Either the relative path to the module calling this function,</span>
-<span class="sd">	 or a full path to a file on disk. Can be a partial path. Does not need the .ui extension.</span>
+<span class="sd">	:param uiPath: Path to UI file.</span>
+<span class="sd">		``uiPath`` be a partial path relative to the file calling :py:func:`.loadUiFile`.</span>
+<span class="sd">		It is also not necessary to include the `.ui` extension.</span>
+
 <span class="sd">	:type uiPath: str</span>
-<span class="sd">	:return Window Class defined by the input UI file</span>
-<span class="sd">	:rtype DesignerForm</span>
+<span class="sd">	:return: Window Class defined by the input UI file</span>
+<span class="sd">	:rtype: :py:class:`.DesignerForm`</span>
 <span class="sd">	&quot;&quot;&quot;</span>
 	<span class="c">#Add extension if missing..</span>
 	<span class="k">if</span> <span class="ow">not</span> <span class="n">uiPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.ui&#39;</span><span class="p">):</span>
@@ -122,7 +211,7 @@
 
 	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">uiPath</span><span class="p">):</span>
 		<span class="c">#Resolve partial path into full path based on the call stack</span>
-		<span class="n">frame</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span>  <span class="c">#Back up one from the current frame</span>
+		<span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span>  <span class="c">#Back up one from the current frame</span>
 		<span class="n">modpath</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span>  <span class="c">#Grab the filename from the code object</span>
 		<span class="n">base_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span>
 
@@ -131,7 +220,7 @@
 		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">resolvePath</span><span class="p">):</span>
 			<span class="n">uiPath</span> <span class="o">=</span> <span class="n">resolvePath</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Could not locate UI file at path: </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span><span class="n">uiPath</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Could not locate UI file at path: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">uiPath</span><span class="p">)</span>
 
 	<span class="c">#Load the form class, and establish what the base class for the top level is in order to sub-class it</span>
 	<span class="k">if</span> <span class="n">qt_lib</span> <span class="o">==</span> <span class="s">&#39;pyqt&#39;</span><span class="p">:</span>
@@ -162,80 +251,157 @@
 			<span class="n">form_class</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="s">&#39;Ui_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">form_class</span><span class="p">]</span>
 			<span class="n">base_class</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s">&#39;QtGui.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">widget_class</span><span class="p">)</span>
 
-	<span class="k">class</span> <span class="nc">DesignerForm</span><span class="p">(</span><span class="n">form_class</span><span class="p">,</span> <span class="n">base_class</span><span class="p">):</span>
-		<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-			<span class="nb">super</span><span class="p">(</span><span class="n">DesignerForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c">#Now run the setupUi function for the user</span>
-			<span class="c">#self.settings = getSettings(self.appname, self)</span>
-			<span class="n">QtGui</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
-
-			<span class="c">#self.__initial_settings = FakeSettings()</span>
-			<span class="c">#saveLoadSettings(self, settings=self.__initial_settings)</span>
-
-		<span class="nd">@classmethod</span>
-		<span class="k">def</span> <span class="nf">showUI</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-			<span class="n">windows</span> <span class="o">=</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;lib.ui.Qt_windows&#39;</span><span class="p">,</span> <span class="p">{})</span>
-			<span class="n">widget</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uiPath</span><span class="p">)</span>
-			<span class="n">closeAndCleanup</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
-
-			<span class="n">windows</span><span class="p">[</span><span class="n">uiPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-			<span class="n">windows</span><span class="p">[</span><span class="n">uiPath</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-			<span class="k">return</span> <span class="n">windows</span><span class="p">[</span><span class="n">uiPath</span><span class="p">]</span>
-
-		<span class="nd">@classmethod</span>
-		<span class="k">def</span> <span class="nf">closeUI</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
-			<span class="n">widget</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">getVisibleInstance</span><span class="p">()</span>
-			<span class="n">closeAndCleanup</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
-
-		<span class="nd">@classmethod</span>
-		<span class="k">def</span> <span class="nf">getVisibleInstance</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
-			<span class="n">windows</span> <span class="o">=</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;lib.ui.Qt_windows&#39;</span><span class="p">,</span> <span class="p">{})</span>
-			<span class="n">widget</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uiPath</span><span class="p">)</span>
-			<span class="k">if</span> <span class="n">isValid</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span> <span class="ow">and</span> <span class="n">widget</span><span class="o">.</span><span class="n">isVisible</span><span class="p">():</span>
-				<span class="k">return</span> <span class="n">widget</span>
-			<span class="k">return</span> <span class="bp">None</span>
-
-		<span class="k">def</span> <span class="nf">resetSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skipGeometry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-			<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Resetting window settings!&#39;</span><span class="p">)</span>
-			<span class="n">settings</span> <span class="o">=</span> <span class="n">FakeSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-
-			<span class="k">if</span> <span class="ow">not</span> <span class="n">skipGeometry</span><span class="p">:</span>
-				<span class="n">geom</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;geometry&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-				<span class="k">if</span> <span class="n">geom</span><span class="p">:</span>
-					<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s">&#39;geometry&#39;</span><span class="p">,</span> <span class="n">geom</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">topLeft</span><span class="p">()))</span>
-
-			<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span><span class="p">,</span> <span class="n">skipGeometry</span><span class="o">=</span><span class="n">skipGeometry</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="n">skipWindowState</span><span class="p">)</span>
-
-		<span class="k">def</span> <span class="nf">saveSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-			<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="p">)</span>
-		<span class="k">def</span> <span class="nf">loadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-			<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-		<span class="k">def</span> <span class="nf">saveWindowState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-			<span class="s">&#39;Save position/size of window&#39;</span>
-			<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-		<span class="k">def</span> <span class="nf">loadWindowState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-			<span class="s">&#39;Load position/size of window&#39;</span>
-			<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-		<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-			<span class="k">if</span> <span class="ow">not</span> <span class="n">pyside</span><span class="p">:</span>
-				<span class="k">if</span> <span class="n">sip</span><span class="o">.</span><span class="n">isdeleted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-					<span class="k">return</span>
-			<span class="k">try</span><span class="p">:</span>
-				<span class="n">base_class</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-				<span class="bp">self</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
-				<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span>
-			<span class="k">except</span><span class="p">:</span>
-				<span class="k">pass</span>
-
-	<span class="n">WindowClass</span><span class="o">.</span><span class="n">appname</span> <span class="o">=</span> <span class="n">appname</span>
+	<span class="k">class</span> <span class="nc">WindowClass</span><span class="p">(</span><span class="n">form_class</span><span class="p">,</span> <span class="n">base_class</span><span class="p">,</span> <span class="n">DesignerForm</span><span class="p">):</span> <span class="k">pass</span>
+	<span class="n">WindowClass</span><span class="o">.</span><span class="n">_appName</span> <span class="o">=</span> <span class="n">uiPath</span>
+	<span class="n">WindowClass</span><span class="o">.</span><span class="n">_uiPath</span> <span class="o">=</span> <span class="n">uiPath</span>
+	<span class="n">WindowClass</span><span class="o">.</span><span class="n">ensurePolished</span> <span class="o">=</span> <span class="n">DesignerForm</span><span class="o">.</span><span class="n">ensurePolished</span>
 	<span class="k">return</span> <span class="n">WindowClass</span>
 
+</div>
+<div class="viewcode-block" id="DesignerForm"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm">[docs]</a><span class="k">class</span> <span class="nc">DesignerForm</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Base class for widgets loaded with loadUiType.</span>
+<span class="sd">	This class provides convenience functions, and manages a few of the more specific features of the loadUiFile function.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_uiPath</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">_appName</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">_manage_settings</span> <span class="o">=</span> <span class="bp">True</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">DesignerForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c">#Now run the setupUi function for the user</span>
+		<span class="n">QtGui</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+
+		<span class="c">#Store initial settings for reset</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span> <span class="o">=</span> <span class="n">InitialSettings</span><span class="p">()</span>
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span><span class="p">)</span>
+
+		<span class="c">#Create a settings object for the user if they have us managing their settings</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manage_settings</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__has_loaded</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">getSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_appName</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DesignerForm.showEvent"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.showEvent">[docs]</a>	<span class="k">def</span> <span class="nf">showEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+		<span class="c">#If we manage settings, load the state on first show</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_loaded</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manage_settings</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">loadSettings</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__has_loaded</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.closeEvent"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.closeEvent">[docs]</a>	<span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+		<span class="c">#If we manage settings save the settings on close</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manage_settings</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">saveSettings</span><span class="p">()</span>
+</div>
+	<span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DesignerForm.showUI"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.showUI">[docs]</a>	<span class="k">def</span> <span class="nf">showUI</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Show a single instance of this form class, closes any previous instances regardless of reloads</span>
+<span class="sd">		All arguments pass through to the base class.</span>
+
+<span class="sd">		.. todo::</span>
+<span class="sd">			Implement multi-instance window support for windows that want it.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">ukey</span> <span class="o">=</span> <span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;_loadUiWindows&#39;</span>
+		<span class="n">windows</span> <span class="o">=</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">ukey</span><span class="p">,</span> <span class="p">{})</span>
+		<span class="n">widget</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_uiPath</span><span class="p">)</span>
+		<span class="n">closeAndCleanup</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+
+		<span class="n">windows</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">_uiPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="n">windows</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">_uiPath</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+		<span class="k">return</span> <span class="n">windows</span><span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">_uiPath</span><span class="p">]</span>
+</div>
+	<span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DesignerForm.closeUI"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.closeUI">[docs]</a>	<span class="k">def</span> <span class="nf">closeUI</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Close the visible instance of this form class</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">widget</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">getVisibleInstance</span><span class="p">()</span>
+		<span class="n">closeAndCleanup</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+</div>
+	<span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DesignerForm.getVisibleInstance"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.getVisibleInstance">[docs]</a>	<span class="k">def</span> <span class="nf">getVisibleInstance</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get the visible instance of this form class.</span>
+<span class="sd">		If create is True, and this window does not already exists,</span>
+<span class="sd">		it will return the result of showUI with no arguments.</span>
+
+<span class="sd">		:param create: Create this ui if none exists</span>
+<span class="sd">		:type create: bool</span>
+<span class="sd">		:return: The visible instance if one exists</span>
+<span class="sd">		:rtype: :py:class:`.DesignerForm` or None</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">ukey</span> <span class="o">=</span> <span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;_loadUiWindows&#39;</span>
+		<span class="n">windows</span> <span class="o">=</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">ukey</span><span class="p">,</span> <span class="p">{})</span>
+		<span class="n">widget</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_uiPath</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">isValid</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span> <span class="ow">and</span> <span class="n">widget</span><span class="o">.</span><span class="n">isVisible</span><span class="p">():</span>
+			<span class="k">return</span> <span class="n">widget</span>
+		<span class="k">if</span> <span class="n">create</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">showUI</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.resetSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.resetSettings">[docs]</a>	<span class="k">def</span> <span class="nf">resetSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skipGeometry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Reset the window to it&#39;s &quot;initial&quot; state from when the UI for was loaded</span>
 
 
+<span class="sd">		:param ignore:</span>
+<span class="sd">		:param skipGeometry:</span>
+<span class="sd">		:param skipWindowState:</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Resetting window settings!&#39;</span><span class="p">)</span>
+		<span class="n">settings</span> <span class="o">=</span> <span class="n">InitialSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">skipGeometry</span><span class="p">:</span>
+			<span class="n">geom</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;geometry&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">geom</span><span class="p">:</span>
+				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s">&#39;geometry&#39;</span><span class="p">,</span> <span class="n">geom</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">topLeft</span><span class="p">()))</span>
+
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span><span class="p">,</span>
+		                 <span class="n">skipGeometry</span><span class="o">=</span><span class="n">skipGeometry</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="n">skipWindowState</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.saveSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.saveSettings">[docs]</a>	<span class="k">def</span> <span class="nf">saveSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">		:param ignore:</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.loadSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.loadSettings">[docs]</a>	<span class="k">def</span> <span class="nf">loadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">		:param ignore:</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.saveWindowState"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.saveWindowState">[docs]</a>	<span class="k">def</span> <span class="nf">saveWindowState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Save position/size of window</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.loadWindowState"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.loadWindowState">[docs]</a>	<span class="k">def</span> <span class="nf">loadWindowState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Load position/size of window</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">saveLoadSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DesignerForm.close"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.DesignerForm.close">[docs]</a>	<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Slight tweak to the default close function, cleans up the window to avoid memory leaking.</span>
+<span class="sd">		.. todo::</span>
+<span class="sd">			Investigate if this is something people actually want, it seems safer this way, but I&#39;m paranoid.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">isValid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__initial_settings</span>
+		<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+			<span class="k">pass</span>
 
 <span class="c">###-----------------------------------###</span>
 <span class="c">###Convience functions to help with Qt###</span>
-<span class="c">###-----------------------------------###</span></div>
+<span class="c">###-----------------------------------###</span></div></div>
 <div class="viewcode-block" id="getFocusWidget"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.getFocusWidget">[docs]</a><span class="k">def</span> <span class="nf">getFocusWidget</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the currently focused widget</span>
@@ -346,23 +512,56 @@
 <div class="viewcode-block" id="closeAndCleanup"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.closeAndCleanup">[docs]</a><span class="k">def</span> <span class="nf">closeAndCleanup</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Call close and deleteLater on a widget safely.</span>
+
 <span class="sd">	.. note::</span>
 <span class="sd">		Skips the close call if the widget is already not visible.</span>
 
-<span class="sd">	:param widget:</span>
-<span class="sd">	:return:</span>
+<span class="sd">	:param widget: Widget to close and delete</span>
+<span class="sd">	:type widget: QtGui.QWidget</span>
 <span class="sd">	&quot;&quot;&quot;</span>
 	<span class="k">if</span> <span class="n">isValid</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
 		<span class="k">if</span> <span class="n">widget</span><span class="o">.</span><span class="n">isVisible</span><span class="p">():</span>
-			<span class="k">try</span><span class="p">:</span>
-				<span class="n">widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-			<span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
-				<span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Failed to execute widget close event for: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">widget</span><span class="p">)</span>
+			<span class="n">widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 		<span class="n">widget</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
 
 
 <span class="c">#Settings management</span></div>
-<div class="viewcode-block" id="saveLoadSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.saveLoadSettings">[docs]</a><span class="k">def</span> <span class="nf">saveLoadSettings</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipGeometry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="getSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.getSettings">[docs]</a><span class="k">def</span> <span class="nf">getSettings</span><span class="p">(</span><span class="n">appName</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Helper to get a settings object for a given app-name</span>
+<span class="sd">	It uses INI settings format for Maya, and registry format for stand-alone tools.</span>
+<span class="sd">	Try to ensure that the appName provided is unique, as overlapping appNames</span>
+<span class="sd">	will try to load/overwrite each others settings file/registry data.</span>
+
+<span class="sd">	:param appName: string -- Application name to use when creating qtSettings ini file/registry entry.</span>
+<span class="sd">	:return: QtCore.QSettings -- Settings object</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">ukey</span> <span class="o">=</span> <span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;_QSettings&#39;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">unique</span> <span class="ow">and</span> <span class="p">(</span><span class="n">appName</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span> <span class="ow">in</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;lib.ui.Qt_settings&#39;</span><span class="p">,</span> <span class="p">{}):</span>
+		<span class="k">return</span> <span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">ukey</span><span class="p">][(</span><span class="n">appName</span><span class="p">,</span> <span class="n">version</span><span class="p">)]</span>
+
+	<span class="k">if</span> <span class="n">has_maya</span><span class="p">:</span>
+		<span class="n">settingsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">internalVar</span><span class="p">(</span><span class="n">upd</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="s">&#39;qtSettings&#39;</span><span class="p">,</span> <span class="n">appName</span><span class="o">+</span><span class="s">&#39;.ini&#39;</span><span class="p">)</span>
+		<span class="n">settingsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">settingsPath</span><span class="p">)</span>
+		<span class="n">settings</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QSettings</span><span class="p">(</span><span class="n">settingsPath</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QSettings</span><span class="o">.</span><span class="n">IniFormat</span><span class="p">)</span>
+		<span class="n">settings</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">getMayaWindow</span><span class="p">())</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">settings</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QSettings</span><span class="p">(</span><span class="s">&#39;Maya&#39;</span><span class="p">,</span> <span class="n">appName</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">unique</span><span class="p">:</span>
+		<span class="n">__main__</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">ukey</span><span class="p">][(</span><span class="n">appName</span><span class="p">,</span> <span class="n">version</span><span class="p">)]</span> <span class="o">=</span> <span class="n">settings</span>
+	<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
+		<span class="n">settings</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">unique</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;__version__&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span><span class="o">&lt;</span><span class="n">version</span><span class="p">:</span>
+			<span class="n">settings</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+		<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s">&#39;__version__&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">settings</span>
+
+</div>
+<div class="viewcode-block" id="saveLoadSettings"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.saveLoadSettings">[docs]</a><span class="k">def</span> <span class="nf">saveLoadSettings</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">windowStateOnly</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipGeometry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skipWindowState</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Save/Load state for a widget and it&#39;s sub-widgets</span>
 
@@ -383,7 +582,8 @@
 		<span class="k">try</span><span class="p">:</span>
 			<span class="n">settings</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">settings</span>
 		<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-			<span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Unable to get settings object from widget and no settings object provided... Unable to save settings!</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
+				<span class="s">&#39;Unable to get settings object from widget and no settings object provided... Unable to save settings!</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
 			<span class="k">return</span>
 
 	<span class="k">if</span> <span class="n">skipWindowState</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -407,7 +607,7 @@
 		<span class="k">return</span>
 
 	<span class="n">ignored_names</span> <span class="o">=</span> <span class="p">[]</span>
-	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">:</span>
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ignore</span> <span class="ow">or</span> <span class="p">[]:</span>
 		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
 			<span class="n">ignored_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
@@ -451,8 +651,10 @@
 			<span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
 				<span class="k">return</span>
 			<span class="n">value</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-			<span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;false&#39;</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">False</span>
-			<span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">True</span>
+			<span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;false&#39;</span><span class="p">:</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span><span class="p">:</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="bp">True</span>
 
 		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QCheckBox</span><span class="p">):</span>
 			<span class="k">if</span> <span class="n">save</span><span class="p">:</span>
@@ -469,7 +671,7 @@
 				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
 			<span class="k">else</span><span class="p">:</span>
 				<span class="n">index</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-				<span class="k">if</span> <span class="n">index</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
 					<span class="n">widget</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
 		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">):</span>
 			<span class="k">if</span> <span class="n">save</span><span class="p">:</span>
@@ -499,7 +701,8 @@
 			<span class="k">else</span><span class="p">:</span>
 				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QSpinBox</span><span class="p">):</span>
 					<span class="n">widget</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-				<span class="k">else</span><span class="p">:</span> <span class="n">widget</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">widget</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
 		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDateTimeEdit</span><span class="p">):</span>
 			<span class="k">if</span> <span class="n">save</span><span class="p">:</span>
 				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">dateTime</span><span class="p">())</span>
@@ -521,9 +724,9 @@
 				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">count</span><span class="p">()):</span>
 					<span class="n">indices</span><span class="p">[</span><span class="n">widget</span><span class="o">.</span><span class="n">visualIndex</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">i</span>
 				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">saveState</span><span class="p">())</span>
-				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">key</span><span class="o">+</span><span class="s">&#39;_order&#39;</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+				<span class="n">settings</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;_order&#39;</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
 			<span class="k">else</span><span class="p">:</span>
-				<span class="n">order</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">key</span><span class="o">+</span><span class="s">&#39;_order&#39;</span><span class="p">)</span>
+				<span class="n">order</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;_order&#39;</span><span class="p">)</span>
 				<span class="n">widget</span><span class="o">.</span><span class="n">restoreState</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 				<span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">order</span><span class="p">]</span>
 				<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">logicalIndex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices</span><span class="p">):</span>
@@ -611,12 +814,13 @@
 <span class="sd">	A python dictionary with a similar API to QSettings in order to store</span>
 <span class="sd">	 a backup of the initial form settings when using loadUiFile</span>
 <span class="sd">	&quot;&quot;&quot;</span>
+
 	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 		<span class="nb">super</span><span class="p">(</span><span class="n">InitialSettings</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">_group</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="InitialSettings.getGroupKey"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.InitialSettings.getGroupKey">[docs]</a>	<span class="k">def</span> <span class="nf">getGroupKey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-		<span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_group</span><span class="o">+</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+		<span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_group</span> <span class="o">+</span> <span class="p">[</span><span class="n">key</span><span class="p">])</span>
 </div>
 <div class="viewcode-block" id="InitialSettings.setValue"><a class="viewcode-back" href="../../../mutil/lib/qt.html#mutil.lib.qt.InitialSettings.setValue">[docs]</a>	<span class="k">def</span> <span class="nf">setValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 		<span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">getGroupKey</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
