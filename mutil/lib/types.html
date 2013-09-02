@@ -56,20 +56,25 @@
 <dl class="function">
 <dt id="mutil.lib.types.Enum">
 <tt class="descclassname">mutil.lib.types.</tt><tt class="descname">Enum</tt><big>(</big><em>*sequential</em>, <em>**named</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/types.html#Enum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.types.Enum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enum Class Factory
-Works using an enumerated list:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Types</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">)</span>
+<dd><p>Enum Class Factory</p>
+<p>Works using an enumerated list:
+&gt;&gt;&gt; Types = Enum(&#8216;test1&#8217;, &#8216;test2&#8217;, &#8216;test3&#8217;)</p>
+<p>Or using key/value pairs:
+&gt;&gt;&gt; Types = Enum(test1=0, test2=1, test3=2)</p>
+<p>And conversion for keys&lt;==&gt;values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Types</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">test1</span>
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>Or using key/value pairs::</dt>
-<dd>Types = Enum(test1=0, test2=1, test3=2)</dd>
-<dt>And conversion for keys&lt;==&gt;values::</dt>
-<dd>print Types.key(0)
-print Types.value(&#8216;test1&#8217;)</dd>
-<dt>The Enum objects provide dot access for the values::</dt>
-<dd>print Types.test1</dd>
-</dl>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Types</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>The Enum objects provide dot access for the values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Types</span><span class="o">.</span><span class="n">test1</span>
+<span class="go">0</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
