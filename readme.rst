@@ -1,4 +1,4 @@
-Maya Open Source Python/Qt Tools
+Readme
 =================================
 
 * `Github Project Home <https://github.com/Temujin2887/maya>`_
