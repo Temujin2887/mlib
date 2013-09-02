@@ -9,11 +9,12 @@ Welcome to Maya open source Python/Qt tools's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+	:maxdepth: 2
 
-   mutil/lib/qt
-   mutil/lib/misc
-   mutil/lib/types
+	includeme
+	mutil/lib/qt
+	mutil/lib/misc
+	mutil/lib/types
 
 
 
