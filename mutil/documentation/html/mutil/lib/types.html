@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Basic Types Library &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../index.html" />
+    <link rel="prev" title="Misc helper library" href="misc.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc helper library"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="basic-types-library">
+<h1>Basic Types Library<a class="headerlink" href="#basic-types-library" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mutil.lib.types">
+<span id="module-documentation"></span><h2>Module documentation<a class="headerlink" href="#module-mutil.lib.types" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mutil.lib.types.Enum">
+<tt class="descclassname">mutil.lib.types.</tt><tt class="descname">Enum</tt><big>(</big><em>*sequential</em>, <em>**named</em><big>)</big><a class="reference internal" href="../../_modules/mutil/lib/types.html#Enum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.types.Enum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enum Class Factory
+Works using an enumerated list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Types</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s">&#39;test1&#39;</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Or using key/value pairs::</dt>
+<dd>Types = Enum(test1=0, test2=1, test3=2)</dd>
+<dt>And conversion for keys&lt;==&gt;values::</dt>
+<dd>print Types.key(0)
+print Types.value(&#8216;test1&#8217;)</dd>
+<dt>The Enum objects provide dot access for the values::</dt>
+<dd>print Types.test1</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Created enum</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="mutil.lib.types.PropertyDict">
+<em class="property">class </em><tt class="descclassname">mutil.lib.types.</tt><tt class="descname">PropertyDict</tt><a class="reference internal" href="../../_modules/mutil/lib/types.html#PropertyDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mutil.lib.types.PropertyDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a></p>
+<p>Subclass of dict that allows the user to access keys as properties</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Basic Types Library</a><ul>
+<li><a class="reference internal" href="#module-mutil.lib.types">Module documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="misc.html"
+                        title="previous chapter">Misc helper library</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/mutil/lib/types.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc helper library"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne, Danny Wynne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
