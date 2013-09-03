@@ -93,8 +93,11 @@ class TrashButton(QtGui.QToolButton):
 
 
 
-def makeIcon(path, size=(64, 64)):
-	pixmap_normal = QtGui.QPixmap(path).scaled(size[0], size[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+def makeIcon(path, resize=None):
+	pixmap_normal = QtGui.QPixmap(path)
+	if isinstance(resize, (list, tuple)):
+		assert len(resize) == 2
+		pixmap_normal = pixmap_normal.scaled(resize[0], resize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 	pixmap_over = pixmap_normal.copy()
 	painter = QtGui.QPainter(pixmap_over)
 
