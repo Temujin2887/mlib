@@ -16,6 +16,8 @@ class ShelfButton(QtGui.QToolButton):
 	def __init__(self, parent=None):
 		super(ShelfButton, self).__init__(parent)
 		self.setAutoRaise(True)
+		self.setIconSize(QtCore.QSize(32, 32))
+		self.setMinimumSize(QtCore.QSize(32, 32))
 		#self.setStyleSheet('QToolButton{margin: 0px 0px 0px 0px; border:none;}')
 
 	def mouseMoveEvent(self, event):
@@ -55,12 +57,17 @@ class ShelfButton(QtGui.QToolButton):
 		btn = cls()
 		if controlType == 'shelfButton':
 			command = cmds.shelfButton(control, q=True, c=True)
+			annotation = cmds.shelfButton(control, q=True, annotation=True)
 			sType = cmds.shelfButton(control, q=True, sourceType=True)
 			normal =  cmds.shelfButton(control, q=True, image=True)
 			over = cmds.shelfButton(control, q=True, highlightImage=True)
 			pressed = cmds.shelfButton(control, q=True, selectionImage=True)
 
+
+			btn.setIcon(makeIcon(resolvePath(normal), resolvePath(over) or None))
 			btn.setText(command)
+			btn.setToolTip(annotation or command)
+
 		elif controlType == 'cmdScrollFieldExecuter':
 			command = data.text()
 			sType = cmds.cmdScrollFieldExecuter(control, q=True, sourceType=True)
@@ -69,7 +76,7 @@ class ShelfButton(QtGui.QToolButton):
 			log.warn('Unsuported drag and drop source: %s - %s'%(controlType, control))
 
 
-		return cls()
+		return btn
 
 
 class TrashButton(QtGui.QToolButton):
@@ -91,25 +98,39 @@ class TrashButton(QtGui.QToolButton):
 		event.accept()
 
 
+import os
+def resolvePath(path):
+	if os.path.isabs(path):
+		return path
+	if path.startswith(':/'):
+		return path
+	return ':/'+path
 
 
-def makeIcon(path, resize=None):
+def makeIcon(path, over=None, resize=None):
 	pixmap_normal = QtGui.QPixmap(path)
+	if over is None:
+		pixmap_over = pixmap_normal.copy()
+		painter = QtGui.QPainter(pixmap_over)
+
+		alpha = QtGui.QPixmap(pixmap_over.size())
+		alpha.fill(QtGui.QColor(100, 100, 100))
+		pixmap_dode = pixmap_normal.copy()
+		pixmap_dode.setAlphaChannel(alpha)
+
+		painter.setCompositionMode(painter.CompositionMode_ColorDodge)
+		painter.drawPixmap(0, 0, pixmap_dode)
+
+		painter.end()
+	else:
+		pixmap_over = QtGui.QPixmap(over)
+
 	if isinstance(resize, (list, tuple)):
 		assert len(resize) == 2
 		pixmap_normal = pixmap_normal.scaled(resize[0], resize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-	pixmap_over = pixmap_normal.copy()
-	painter = QtGui.QPainter(pixmap_over)
+		pixmap_over = pixmap_over.scaled(resize[0], resize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+		#pixmap_pressed = pixmap_pressed.scaled(resize[0], resize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 
-	alpha = QtGui.QPixmap(pixmap_over.size())
-	alpha.fill(QtGui.QColor(100, 100, 100))
-	pixmap_dode = pixmap_normal.copy()
-	pixmap_dode.setAlphaChannel(alpha)
-
-	painter.setCompositionMode(painter.CompositionMode_ColorDodge)
-	painter.drawPixmap(0, 0, pixmap_dode)
-
-	painter.end()
 	icon = QtGui.QIcon()
 	icon.addPixmap(pixmap_normal, icon.Normal, icon.On)
 	icon.addPixmap(pixmap_over, icon.Active, icon.On)

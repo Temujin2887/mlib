@@ -10,6 +10,7 @@ from ...lib.qt import QtGui, QtCore
 from ...lib.widgets import flowlayout
 from . import buttons
 reload(flowlayout)
+reload(buttons)
 
 import maya.cmds as cmds
 
@@ -155,8 +156,9 @@ class Shelf(QtGui.QScrollArea):
 
 	def dropEvent(self, event):
 		self.highlight.hide()
+		dropIndex = self.getIndexFrom(event.pos())
 
-		print 'Drop Index:', self.getIndexFrom(event.pos())
+		print 'Drop Index:',dropIndex
 		#print event
 		#print '\n'.join(event.mimeData().formats())
 
@@ -168,8 +170,10 @@ class Shelf(QtGui.QScrollArea):
 			control = controlType = None
 			for i in range(len(controlPath)):
 				try:
-					path = '|'.join(controlPath[:-i])
-					print path
+					if i:
+						path = '|'.join(controlPath[:-i])
+					else:
+						path = '|'.join(controlPath)
 					controlType = cmds.objectTypeUI(path)
 					control = path
 					break
@@ -178,3 +182,4 @@ class Shelf(QtGui.QScrollArea):
 
 
 			btn = buttons.ShelfButton.createFromMaya(event.mimeData(), control, controlType)
+			self.shelfLayout.insertWidget(dropIndex, btn)

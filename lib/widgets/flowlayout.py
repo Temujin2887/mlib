@@ -24,7 +24,19 @@ class FlowLayout(QtGui.QLayout):
 			item = self.takeAt(0)
 
 	def addItem(self, item):
-		self.itemList.append(item)
+		if item.widget() and hasattr(item.widget(), '_temp_insert_index'):
+			index = item.widget()._temp_insert_index
+			if index<0:
+				index = len(self.itemList)+index+1
+			print index
+			self.itemList.insert(index, item)
+		else:
+			self.itemList.append(item)
+
+	def insertWidget(self, index, widget):
+		widget._temp_insert_index = index
+		self.addWidget(widget)
+		del widget._temp_insert_index
 
 	def count(self):
 		return len(self.itemList)
@@ -50,7 +62,7 @@ class FlowLayout(QtGui.QLayout):
 		return height
 
 	def setGeometry(self, rect):
-		super(FlowLayout, self).setGeometry(rect)
+		QtGui.QLayout.setGeometry(self, rect)
 		self.doLayout(rect, False)
 
 	def setWrapOverflow(self, overflow):
