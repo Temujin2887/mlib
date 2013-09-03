@@ -18,7 +18,34 @@ class ShelfButton(QtGui.QToolButton):
 		self.setAutoRaise(True)
 		self.setIconSize(QtCore.QSize(32, 32))
 		self.setMinimumSize(QtCore.QSize(32, 32))
-		#self.setStyleSheet('QToolButton{margin: 0px 0px 0px 0px; border:none;}')
+		#self.setStyleSheet('QToolButton{background: rgb(0, 0, 0);}')
+
+		self.labelRenderer = QtGui.QTextDocument(self)
+		self.labelRenderer.setDocumentMargin(0)
+		#font = QtGui.QFont()
+		#font.setPointSize(8)
+		#font.setFamily('Segoe UI')
+		#self.labelRenderer.setDefaultFont(font)
+
+	def paintEvent(self, event):
+		QtGui.QToolButton.paintEvent(self, event)
+
+		rectf = QtCore.QRectF(self.rect())
+
+		#Set up the label documents
+
+		#self.labelRenderer.setHtml('<span style="color:#00ff00;background:rgba(0, 0, 255, 70);">Test String!</span>')
+		self.labelRenderer.setTextWidth(rectf.width())
+
+		#Align the label based on document size
+		self.labelRenderer.size()
+
+
+
+
+		painter = QtGui.QPainter(self)
+		self.labelRenderer.drawContents(painter, rectf)
+		painter.end()
 
 	def mouseMoveEvent(self, event):
 		#print 'Mouse Move'
@@ -71,6 +98,14 @@ class ShelfButton(QtGui.QToolButton):
 		elif controlType == 'cmdScrollFieldExecuter':
 			command = data.text()
 			sType = cmds.cmdScrollFieldExecuter(control, q=True, sourceType=True)
+
+			btn.setText(command)
+			btn.setToolTip(command)
+
+			if sType == 'python':
+				btn.setIcon(makeIcon(':/pythonFamily.png'))
+			else:
+				btn.setIcon(makeIcon(':/commandButton.png'))
 
 		else:
 			log.warn('Unsuported drag and drop source: %s - %s'%(controlType, control))
