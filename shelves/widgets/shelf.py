@@ -20,6 +20,7 @@ class Shelf(QtGui.QScrollArea):
 	toolButtonStyleChanged = QtCore.Signal(QtCore.Qt.ToolButtonStyle)
 	def __init__(self, parent=None):
 		super(Shelf, self).__init__(parent)
+		self.orientation = QtCore.Qt.Horizontal
 		self.setFrameStyle(QtGui.QFrame.NoFrame)
 		self.verticalScrollBar().setSingleStep(32)
 		self.verticalScrollBar().setPageStep(32)
@@ -72,6 +73,7 @@ class Shelf(QtGui.QScrollArea):
 		pass
 
 	def setOrientation(self, orientation):
+		self.orientation = orientation
 		if orientation == QtCore.Qt.Vertical:
 			self.shelfLayout.setWrapOverflow(0)
 		else:
@@ -137,10 +139,16 @@ class Shelf(QtGui.QScrollArea):
 		else:
 			rect = item.widget().geometry()
 
-		if index!=-1:
-			rect.setRight(rect.left()+1)
+		if self.orientation == QtCore.Qt.Horizontal:
+			if index!=-1:
+				rect.setRight(rect.left()+1)
+			else:
+				rect.setLeft(rect.right()-1)
 		else:
-			rect.setLeft(rect.right()-1)
+			if index!=-1:
+				rect.setBottom(rect.top()+1)
+			else:
+				rect.setTop(rect.bottom()-1)
 
 		self.highlight.setGeometry(rect)
 		self.highlight.show()

@@ -71,7 +71,7 @@ class ShelfBar(QtGui.QToolBar):
 		self.addWidget(self.shelfTabs)
 		self.setFloatable(False)
 
-		self._last_state = (0, 0, True)
+		self._last_state = (0, 0)
 
 		self.radioPixmaps = self.generateRadioPixmaps()
 
@@ -154,15 +154,15 @@ class ShelfBar(QtGui.QToolBar):
 		if floating:
 			area = QtCore.Qt.NoToolBarArea
 
-		if (area, orientation, floating) != self._last_state:
-			self._last_state = (area, orientation, floating)
+		if (area, orientation) != self._last_state:
+			self._last_state = (area, orientation)
 			self.updateLayout(self._last_state)
 
 
 	def updateLayout(self, state=None):
 		if state is None:
 			state = self._last_state
-		area, orientation, floating = state
+		area, orientation = state
 
 		self.shelfTabs.setToolBarArea(area or -orientation)
 		self.shelfTabs.setOrientation(orientation)
