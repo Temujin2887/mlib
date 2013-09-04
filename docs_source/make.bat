@@ -1,1 +1,1 @@
-mayapy .\make.py -b html -d ../../mlib-docs/.doctrees . ../../mlib-docs
+mayapy .\make.py -b html -d %temp%/sphinx/.doctrees . ../../mlib-docs
