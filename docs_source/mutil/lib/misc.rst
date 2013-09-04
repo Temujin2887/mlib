@@ -5,7 +5,7 @@ Misc helper library
 Module documentation
 ---------------------
 
-.. automodule:: mutil.lib.misc
+.. automodule:: mlib.lib.misc
 	:members:
 	:member-order: bysource
 	:undoc-members:
