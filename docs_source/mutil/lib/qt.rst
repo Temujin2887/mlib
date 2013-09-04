@@ -5,7 +5,7 @@ Qt helper library
 Module documentation
 ---------------------
 
-.. automodule:: mutil.lib.qt
+.. automodule:: mlib.lib.qt
 	:members:
 	:member-order: bysource
 	:undoc-members:
