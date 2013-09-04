@@ -5,7 +5,7 @@ import json
 import logging
 import __main__
 
-from ..lib import misc
+from ..core import misc
 
 import maya.cmds as cmds
 

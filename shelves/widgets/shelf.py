@@ -5,9 +5,9 @@ import __main__
 
 from functools import partial
 
-from ...lib import qt
-from ...lib.qt import QtGui, QtCore
-from ...lib.widgets import flowlayout
+from ...core import qt
+from ...core.qt import QtGui, QtCore
+from ...core.widgets import flowlayout
 from . import buttons
 reload(flowlayout)
 reload(buttons)

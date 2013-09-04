@@ -5,8 +5,8 @@ import __main__
 
 from functools import partial
 
-from ...lib import qt
-from ...lib.qt import QtGui, QtCore
+from ...core import qt
+from ...core.qt import QtGui, QtCore
 import maya.cmds as cmds
 
 log = logging.getLogger(__name__)
