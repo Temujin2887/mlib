@@ -1,4 +1,4 @@
-MUtil Maya/Python tools and Library
+MLib Maya/Python tools and Library
 ====================================
 
 * `Github Project Home <https://github.com/Temujin2887/mlib>`_
