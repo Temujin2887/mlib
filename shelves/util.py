@@ -4,11 +4,29 @@ import os
 from ..core.qt import QtGui, QtCore
 
 def resolvePath(path):
+	if not path:
+		return path
+	
 	if os.path.isabs(path):
 		return path
 	if path.startswith(':/'):
 		return path
-	return ':/'+path
+	
+	folder, sep, path = os.path.normpath(path).rpartition(os.path.sep)
+	
+	for icon_dir in os.environ['XBMLANGPATH'].split(';'):
+		if not icon_dir or not os.path.isdir(icon_dir):
+			continue
+		icon_dir = os.path.normpath(icon_dir)
+		
+		for root, folders, files in os.walk(icon_dir):
+			if folder and not root.endswith(os.path.sep+folder):
+				continue
+			
+			if path in files:
+				return os.path.join(root, path)
+	
+	return path
 
 def makeIcon(path, over=None, resize=None):
 	pixmap_normal = QtGui.QPixmap(path)

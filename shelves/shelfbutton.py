@@ -19,7 +19,7 @@ QWIDGETSIZE_MAX = 16777215
 class ShelfButton(QtGui.QToolButton):
 	def __init__(self, parent=None):
 		super(ShelfButton, self).__init__(parent)
-		#self.setAutoRaise(True)
+		self.setAutoRaise(True)
 		self.setIconSize(QtCore.QSize(32, 32))
 		self.setMinimumSize(QtCore.QSize(32, 32))
 
@@ -29,8 +29,8 @@ class ShelfButton(QtGui.QToolButton):
 
 		'''
 
-		#color = ['50, 0, 50', '50, 0, 0', '0, 0, 50', '0, 50, 0', '50, 50, 0']
-		#self.setStyleSheet('QToolButton{background: rgb(%s);}'%random.choice(color))
+		#color = ['50, 0, 50, 100', '50, 0, 0, 100', '0, 0, 50, 100', '0, 50, 0, 100', '50, 50, 0, 100']
+		#self.setStyleSheet('QToolButton{background: rgba(%s);}'%random.choice(color))
 
 		self.labelRenderer = QtGui.QTextDocument(self)
 		self.labelRenderer.setDocumentMargin(0)
@@ -41,6 +41,7 @@ class ShelfButton(QtGui.QToolButton):
 			self.menu().addAction('test 1')
 			self.menu().addAction('test 2')
 			self.menu().addAction('test 3')
+			self.setCursor(QtGui.QCursor(QtGui.QPixmap(':/rmbMenu.png'), 6, 2))
 		font = QtGui.QFont()
 		font.setPointSize(8)
 		font.setFamily('Segoe UI')

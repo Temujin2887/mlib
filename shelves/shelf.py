@@ -51,7 +51,7 @@ class Shelf(QtGui.QScrollArea):
 
 		#Test code
 		icons = [':/sphere.png', ':/cube.png', ':/cylinder.png', ':/cone.png', ':/plane.png', ':/torus.png']
-		for i in range(90):
+		for i in range(random.randint(1, 100)):
 			btn = shelfbutton.ShelfButton()
 			btn.setIconSize(QtCore.QSize(32, 32))
 			btn.setMinimumSize(QtCore.QSize(32, 32))
