@@ -6,6 +6,8 @@ import __main__
 from ..core import qt
 from . import shelfbar
 
+reload(shelfbar)
+
 log = logging.getLogger(__name__)
 
 def install_toolbar():

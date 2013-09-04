@@ -1,61 +1,84 @@
 __author__ = 'Nathan'
 
+import random
 import logging
 import __main__
 
 from functools import partial
 
-from ...core import qt
-from ...core.qt import QtGui, QtCore
+from ..core import qt
+from ..core.qt import QtGui, QtCore
+from . import util
+
 import maya.cmds as cmds
 
-import random
+
 log = logging.getLogger(__name__)
 QWIDGETSIZE_MAX = 16777215
 
 class ShelfButton(QtGui.QToolButton):
 	def __init__(self, parent=None):
 		super(ShelfButton, self).__init__(parent)
-		self.setAutoRaise(True)
+		#self.setAutoRaise(True)
 		self.setIconSize(QtCore.QSize(32, 32))
 		self.setMinimumSize(QtCore.QSize(32, 32))
+
+		'''
+		Data:
+			icon paths (normal, hover, press)
+
+		'''
 
 		#color = ['50, 0, 50', '50, 0, 0', '0, 0, 50', '0, 50, 0', '50, 50, 0']
 		#self.setStyleSheet('QToolButton{background: rgb(%s);}'%random.choice(color))
 
 		self.labelRenderer = QtGui.QTextDocument(self)
 		self.labelRenderer.setDocumentMargin(0)
-		#self.setPopupMode(self.MenuButtonPopup)
-		#self.setPopupMode(self.DelayedPopup)
-		#self.setMenu(QtGui.QMenu(self))
-		#self.menu().addAction('test 1')
-		#self.menu().addAction('test 2')
-		#self.menu().addAction('test 3')
+
+		if random.randint(0, 4)>0:
+			self.setPopupMode(random.choice([self.MenuButtonPopup, self.DelayedPopup, self.InstantPopup]))
+			self.setMenu(QtGui.QMenu(self))
+			self.menu().addAction('test 1')
+			self.menu().addAction('test 2')
+			self.menu().addAction('test 3')
 		font = QtGui.QFont()
 		font.setPointSize(8)
 		font.setFamily('Segoe UI')
 		self.labelRenderer.setDefaultFont(font)
 
+	def enterEvent(self, event):
+		QtGui.QToolButton.enterEvent(self, event)
+		if not self.autoRaise():
+			self.update()
+
+	def leaveEvent(self, event):
+		QtGui.QToolButton.leaveEvent(self, event)
+		if not self.autoRaise():
+			self.update()
+
 	def paintEvent(self, event):
-		QtGui.QToolButton.paintEvent(self, event)
+		painter = QtGui.QStylePainter(self)
+		opt = QtGui.QStyleOptionToolButton()
+		self.initStyleOption(opt)
 
-		rectf = QtCore.QRectF(self.rect())
+		if opt.state & QtGui.QStyle.State_MouseOver:
+			opt.state |= QtGui.QStyle.State_AutoRaise
 
+		painter.drawComplexControl(QtGui.QStyle.CC_ToolButton, opt)
+
+		#rectf = QtCore.QRectF(self.rect())
 		#Set up the label documents
-
 		#self.labelRenderer.setHtml('<span style="color:#00ff00;background:rgba(0, 0, 255, 70);">Test String!</span>')
 		#self.labelRenderer.setTextWidth(rectf.width())
-
 		#Align the label based on document size
-		self.labelRenderer.size()
+		#self.labelRenderer.size()
+		#self.labelRenderer.drawContents(painter, rectf)
 
-		painter = QtGui.QPainter(self)
-		self.labelRenderer.drawContents(painter, rectf)
 		painter.end()
 
 	def mouseMoveEvent(self, event):
 		#print 'Mouse Move'
-		if event.buttons() == QtCore.Qt.LeftButton:
+		if event.buttons() == QtCore.Qt.MiddleButton:
 			if not self.rect().contains(event.pos()):
 				#self.hide()
 				#self.parent().layout().removeWidget(self)
@@ -96,8 +119,11 @@ class ShelfButton(QtGui.QToolButton):
 			over = cmds.shelfButton(control, q=True, highlightImage=True)
 			pressed = cmds.shelfButton(control, q=True, selectionImage=True)
 
+			normal = util.resolvePath(normal)
+			over = util.resolvePath(over)
 
-			btn.setIcon(makeIcon(resolvePath(normal), resolvePath(over) or None))
+
+			btn.setIcon(util.makeIcon(normal, over or None))
 			btn.setText(command)
 			btn.setToolTip(annotation or command)
 
@@ -109,13 +135,12 @@ class ShelfButton(QtGui.QToolButton):
 			btn.setToolTip(command)
 
 			if sType == 'python':
-				btn.setIcon(makeIcon(':/pythonFamily.png'))
+				btn.setIcon(util.makeIcon(':/pythonFamily.png'))
 			else:
-				btn.setIcon(makeIcon(':/commandButton.png'))
+				btn.setIcon(util.makeIcon(':/commandButton.png'))
 
 		else:
 			log.warn('Unsuported drag and drop source: %s - %s'%(controlType, control))
-
 
 		return btn
 

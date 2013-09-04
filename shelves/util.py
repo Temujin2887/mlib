@@ -1,7 +1,6 @@
 __author__ = 'Nathan'
 
 import os
-
 from ..core.qt import QtGui, QtCore
 
 def resolvePath(path):

@@ -81,6 +81,15 @@ class FlowLayout(QtGui.QLayout):
 		size += QtCore.QSize(2 * self.margin(), 2 * self.margin())
 		return size
 
+	def setVerticalSpacing(self, space):
+		self.vspace = space
+
+	def verticalSpacing(self):
+		try:
+			return self.vspace
+		except AttributeError:
+			return self.spacing()
+
 	def doLayout(self, rect, testOnly):
 		x = rect.x()
 		y = rect.y()
@@ -88,7 +97,7 @@ class FlowLayout(QtGui.QLayout):
 
 		for item in self.itemList:
 			spaceX = self.spacing()
-			spaceY = self.spacing()
+			spaceY = self.verticalSpacing()
 			nextX = x + spaceX + item.sizeHint().width()
 			if nextX - spaceX - self.wrapOverflow > rect.right() and lineHeight > 0:
 				x = rect.x()

@@ -6,6 +6,8 @@ import logging
 from ..core import qt
 from ..core.qt import QtGui, QtCore
 
+from . import shelf
+reload(shelf)
 
 
 log = logging.getLogger(__name__)
@@ -15,44 +17,48 @@ class ShelfTabs(QtGui.QTabWidget):
 	toolButtonStyleChanged = QtCore.Signal(QtCore.Qt.ToolButtonStyle)
 	def __init__(self, parent=None):
 		super(ShelfTabs, self).__init__(parent)
+		self.__orientation = QtCore.Qt.Horizontal
 
-		trashBtn = buttons.TrashButton(self)
-		self.setCornerWidget(trashBtn)
+		#trashBtn = buttons.TrashButton(self)
+		#self.setCornerWidget(trashBtn)
 		self.setAcceptDrops(True)
 		self.highlight = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
 
-		#self.setDocumentMode(True)
 		self.setMovable(True)
 
 		#Test code
 		self.addTab(shelf.Shelf(self), 'Tab 1')
 		self.addTab(shelf.Shelf(self), 'Tab 2')
 		self.addTab(shelf.Shelf(self), 'Tab 3')
-		#self.tabBar().hide()
 
 	def addTab(self, tabWidget, *args):
 		super(ShelfTabs, self).addTab(tabWidget, *args)
 		self.toolButtonStyleChanged.connect(tabWidget.toolButtonStyleChanged.emit)
 
 	def setOrientation(self, orientation):
+		self.__orientation = orientation
 		self.setMinimumSize(64, 64)
 		for tabIndex in range(self.count()):
 			tab = self.widget(tabIndex)
 			tab.setOrientation(orientation)
 
 	def setToolBarArea(self, area):
-		if area == QtCore.Qt.TopToolBarArea or area == -1:
+		if area == QtCore.Qt.TopToolBarArea:
 			self.setTabPosition(self.North)
 		elif area == QtCore.Qt.BottomToolBarArea:
 			self.setTabPosition(self.South)
-		elif area == QtCore.Qt.LeftToolBarArea or area == -2:
+		elif area == QtCore.Qt.LeftToolBarArea:
 			self.setTabPosition(self.West)
 		elif area == QtCore.Qt.RightToolBarArea:
 			self.setTabPosition(self.East)
+		elif area == QtCore.Qt.NoToolBarArea:
+			if self.__orientation == QtCore.Qt.Horizontal:
+				self.setTabPosition(self.North)
+			else:
+				self.setTabPosition(self.West)
 
 		for tabIndex in range(self.count()):
 			tab = self.widget(tabIndex)
-			tab.setToolBarArea(area)
 
 	def dragEnterEvent(self, event):
 		tab = self.tabBar().tabAt(event.pos())
