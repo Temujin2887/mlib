@@ -9,6 +9,7 @@ from ...core import qt
 from ...core.qt import QtGui, QtCore
 import maya.cmds as cmds
 
+import random
 log = logging.getLogger(__name__)
 QWIDGETSIZE_MAX = 16777215
 
@@ -18,14 +19,22 @@ class ShelfButton(QtGui.QToolButton):
 		self.setAutoRaise(True)
 		self.setIconSize(QtCore.QSize(32, 32))
 		self.setMinimumSize(QtCore.QSize(32, 32))
-		#self.setStyleSheet('QToolButton{background: rgb(0, 0, 0);}')
+
+		#color = ['50, 0, 50', '50, 0, 0', '0, 0, 50', '0, 50, 0', '50, 50, 0']
+		#self.setStyleSheet('QToolButton{background: rgb(%s);}'%random.choice(color))
 
 		self.labelRenderer = QtGui.QTextDocument(self)
 		self.labelRenderer.setDocumentMargin(0)
-		#font = QtGui.QFont()
-		#font.setPointSize(8)
-		#font.setFamily('Segoe UI')
-		#self.labelRenderer.setDefaultFont(font)
+		#self.setPopupMode(self.MenuButtonPopup)
+		#self.setPopupMode(self.DelayedPopup)
+		#self.setMenu(QtGui.QMenu(self))
+		#self.menu().addAction('test 1')
+		#self.menu().addAction('test 2')
+		#self.menu().addAction('test 3')
+		font = QtGui.QFont()
+		font.setPointSize(8)
+		font.setFamily('Segoe UI')
+		self.labelRenderer.setDefaultFont(font)
 
 	def paintEvent(self, event):
 		QtGui.QToolButton.paintEvent(self, event)
@@ -35,13 +44,10 @@ class ShelfButton(QtGui.QToolButton):
 		#Set up the label documents
 
 		#self.labelRenderer.setHtml('<span style="color:#00ff00;background:rgba(0, 0, 255, 70);">Test String!</span>')
-		self.labelRenderer.setTextWidth(rectf.width())
+		#self.labelRenderer.setTextWidth(rectf.width())
 
 		#Align the label based on document size
 		self.labelRenderer.size()
-
-
-
 
 		painter = QtGui.QPainter(self)
 		self.labelRenderer.drawContents(painter, rectf)

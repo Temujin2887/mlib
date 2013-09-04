@@ -5,7 +5,7 @@ Basic Types Library
 Module documentation
 ---------------------
 
-.. automodule:: mlib.lib.types
+.. automodule:: mlib.core.types
 	:members:
 	:member-order: bysource
 	:undoc-members:
