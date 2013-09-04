@@ -1,11 +1,11 @@
-Basic Types Library
-====================
+Qt helper library
+==================
 
 
 Module documentation
 ---------------------
 
-.. automodule:: mutil.lib.types
+.. automodule:: mlib.core.qt
 	:members:
 	:member-order: bysource
 	:undoc-members:

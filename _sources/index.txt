@@ -13,9 +13,9 @@ Contents
 .. toctree::
 	:maxdepth: 2
 
-	mutil/lib/qt
-	mutil/lib/misc
-	mutil/lib/types
+	mlib/core/qt
+	mlib/core/misc
+	mlib/core/types
 
 
 

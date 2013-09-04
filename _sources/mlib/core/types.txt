@@ -1,11 +1,11 @@
-Misc helper library
+Basic Types Library
 ====================
 
 
 Module documentation
 ---------------------
 
-.. automodule:: mutil.lib.misc
+.. automodule:: mlib.core.types
 	:members:
 	:member-order: bysource
 	:undoc-members:

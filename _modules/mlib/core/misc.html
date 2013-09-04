@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mlib.core.misc &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mlib.core.misc</h1><pre>
+__author__ = 'Nathan'
+
+import uuid
+import base64
+import logging
+
+log = logging.getLogger(__name__)
+
+<div class="viewcode-block" id="generateGuid"><a class="viewcode-back" href="../../../mlib/core/misc.html#mlib.core.misc.generateGuid">[docs]</a>def generateGuid(length=None):
+	"""
+	URL Safe and Unique GUID Generator
+
+	:return: GUID
+	:rtype: str
+	"""
+	r_uuid = base64.urlsafe_b64encode(uuid.uuid4().bytes)
+	r_uuid = r_uuid.replace('=', '')
+	if length:
+		r_uuid = r_uuid[:length]
+	return r_uuid
+
+</div>
+<div class="viewcode-block" id="removeDuplicates"><a class="viewcode-back" href="../../../mlib/core/misc.html#mlib.core.misc.removeDuplicates">[docs]</a>def removeDuplicates(seq):
+	"""
+	| Fastest order preserving way to make a list unique
+	| http://www.peterbe.com/plog/uniqifiers-benchmark
+	| Specific method by: ``Dave Kirby``
+
+	:param seq: Input sequence
+	:type seq: list
+	:return: Unique sequence
+	:rtype: list
+	"""
+	seen = set()
+	return [x for x in seq if x not in seen and not seen.add(x)]
+</div>
+<div class="viewcode-block" id="clamp"><a class="viewcode-back" href="../../../mlib/core/misc.html#mlib.core.misc.clamp">[docs]</a>def clamp(minimum, maximum, value):
+	"""
+	Clamp value between min and max
+
+	:param minimum: min value
+	:type minimum: float
+	:param maximum: max value
+	:type maximum: float
+	:param value: input value
+	:type value: float
+	:return: value, where min&lt;=value&lt;=max
+	:rtype: float
+	"""
+	#return sorted([minimum, maximum, value])[1]  #Alternate way
+	return max(minimum, min(value, maximum))
+</div>
+<div class="viewcode-block" id="closest"><a class="viewcode-back" href="../../../mlib/core/misc.html#mlib.core.misc.closest">[docs]</a>def closest(values, value):
+	"""
+	Get the closest value from a list of values.
+
+	:param values: values to check
+	:type values: list
+	:param value: target value
+	:type value: float or int
+	:return: closest value
+	:rtype: float or int
+	"""
+	return min(values, key=lambda x: abs(x-value))</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2pre.
+    </div>
+  </body>
+</html>

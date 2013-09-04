@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mlib.core.types &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mlib.core.types</h1><pre>
+__author__ = 'Nathan'
+
+
+
+<div class="viewcode-block" id="Enum"><a class="viewcode-back" href="../../../mlib/core/types.html#mlib.core.types.Enum">[docs]</a>def Enum(*sequential, **named):
+	"""
+	Enum Class Factory
+
+	Works using an enumerated list:
+
+	&gt;&gt;&gt; Types = Enum('test1', 'test2', 'test3')
+
+	Or using key/value pairs:
+
+	&gt;&gt;&gt; Types = Enum(test1=0, test2=1, test3=2)
+
+	Or a mix:
+
+	&gt;&gt;&gt; Types = Enum('test1', 'test2', 'test3', test=45)
+
+
+	And conversion for keys&lt;==&gt;values:
+
+	&gt;&gt;&gt; print Types.key(0)
+	test1
+
+	&gt;&gt;&gt; print Types.value('test1')
+	0
+
+	The Enum objects provide dot access for the values:
+
+	&gt;&gt;&gt; print Types.test1
+	0
+
+	:return: Created enum
+	:rtype: :py:class:`.Enum`
+	"""
+	base_enums = dict(zip(sequential, range(len(sequential))), **named)
+	reverse = dict((value, key) for key, value in base_enums.iteritems())
+	enums = base_enums.copy()
+	enums['key'] = reverse.get
+	enums['value'] = enums.get
+	def __repr__(cls):
+		arguments = map(repr, sequential)+['%s=%s'%(key, value) for key, value in named.items()]
+		return 'Enum(%s)'%', '.join(arguments)
+	metaclass = type('Enum', (type,), {'__repr__':__repr__})
+	return metaclass('Enum', (object,), enums)
+</div>
+<div class="viewcode-block" id="PropertyDict"><a class="viewcode-back" href="../../../mlib/core/types.html#mlib.core.types.PropertyDict">[docs]</a>class PropertyDict(dict):
+	"""
+	Subclass of dict that allows the user to access keys as properties
+	"""
+	def __getattr__(self, key):
+		try:
+			return dict.__getattribute__(self, key)
+		except:
+			return self.__getitem__(key)
+
+	def __setattr__(self, key, value):
+		dict.__setitem__(self, key, value)
+
+	def _setattr(self, key, value):
+		object.__setattr__(self, key, value)</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2pre.
+    </div>
+  </body>
+</html>
