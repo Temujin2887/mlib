@@ -1,16 +1,20 @@
 __author__ = 'Nathan'
 
+import random
 import logging
 import __main__
 
 from functools import partial
 
-from ...core import qt
-from ...core.qt import QtGui, QtCore
-from ...core.widgets import flowlayout
-from . import buttons
+from ..core import qt
+from ..core.qt import QtGui, QtCore
+from ..core.widgets import flowlayout
+from . import shelfbutton
+from . import util
+
+
+reload(shelfbutton)
 reload(flowlayout)
-reload(buttons)
 
 import maya.cmds as cmds
 
@@ -21,12 +25,7 @@ class Shelf(QtGui.QScrollArea):
 	toolButtonStyleChanged = QtCore.Signal(QtCore.Qt.ToolButtonStyle)
 	def __init__(self, parent=None):
 		super(Shelf, self).__init__(parent)
-		self.orientation = QtCore.Qt.Horizontal
 		self.setFrameStyle(QtGui.QFrame.NoFrame)
-		self.verticalScrollBar().setSingleStep(32)
-		self.verticalScrollBar().setPageStep(32)
-		self.horizontalScrollBar().setSingleStep(32)
-		self.horizontalScrollBar().setPageStep(32)
 
 		self.setStyleSheet('''
 		QScrollBar:vertical { background: rgb(80, 80, 80);}
@@ -43,17 +42,20 @@ class Shelf(QtGui.QScrollArea):
 		self.shelfLayout.setObjectName('shelfLayout')
 		contents.setLayout(self.shelfLayout)
 		self.shelfLayout.setSpacing(0)
-		self.widget().setContentsMargins(2, 3, 0, 0)
+		self.shelfLayout.setVerticalSpacing(4)
+		self.widget().setContentsMargins(2, 2, 0, 2)
 		self.setAcceptDrops(True)
 		self.highlight = QtGui.QRubberBand(QtGui.QRubberBand.Line, self)
 
+		self.setOrientation(QtCore.Qt.Horizontal)
+
 		#Test code
-		import random
-		for i in range(random.randint(5, 25)):
-			btn = buttons.ShelfButton()
+		icons = [':/sphere.png', ':/cube.png', ':/cylinder.png', ':/cone.png', ':/plane.png', ':/torus.png']
+		for i in range(90):
+			btn = shelfbutton.ShelfButton()
 			btn.setIconSize(QtCore.QSize(32, 32))
 			btn.setMinimumSize(QtCore.QSize(32, 32))
-			btn.setIcon(buttons.makeIcon(':/sphere.png'))
+			btn.setIcon(util.makeIcon(random.choice(icons)))
 			btn.setText('test longer name %s\nsecond line of text\nthird now...'%i)
 			self.shelfLayout.addWidget(btn)
 			self.toolButtonStyleChanged.connect(btn.setToolButtonStyle)
@@ -68,9 +70,6 @@ class Shelf(QtGui.QScrollArea):
 		pass
 
 	def save(self, path):
-		pass
-
-	def setToolBarArea(self, area):
 		pass
 
 	def setOrientation(self, orientation):
@@ -181,5 +180,5 @@ class Shelf(QtGui.QScrollArea):
 					continue
 
 
-			btn = buttons.ShelfButton.createFromMaya(event.mimeData(), control, controlType)
+			btn = shelfbutton.ShelfButton.createFromMaya(event.mimeData(), control, controlType)
 			self.shelfLayout.insertWidget(dropIndex, btn)
