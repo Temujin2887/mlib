@@ -3,14 +3,13 @@ __author__ = 'Nathan'
 import logging
 import __main__
 
-from functools import partial
+from ..core import qt
+from ..core.qt import QtGui, QtCore
+from ..core.widgets import flowlayout
+from . import shelfbutton
 
-from ...core import qt
-from ...core.qt import QtGui, QtCore
-from ...core.widgets import flowlayout
-from . import buttons
 reload(flowlayout)
-reload(buttons)
+reload(shelfbutton)
 
 import maya.cmds as cmds
 
@@ -50,10 +49,10 @@ class Shelf(QtGui.QScrollArea):
 		#Test code
 		import random
 		for i in range(random.randint(5, 25)):
-			btn = buttons.ShelfButton()
+			btn = shelfbutton.ShelfButton()
 			btn.setIconSize(QtCore.QSize(32, 32))
 			btn.setMinimumSize(QtCore.QSize(32, 32))
-			btn.setIcon(buttons.makeIcon(':/sphere.png'))
+			btn.setIcon(shelfbutton.makeIcon(':/sphere.png'))
 			btn.setText('test longer name %s\nsecond line of text\nthird now...'%i)
 			self.shelfLayout.addWidget(btn)
 			self.toolButtonStyleChanged.connect(btn.setToolButtonStyle)
@@ -181,5 +180,5 @@ class Shelf(QtGui.QScrollArea):
 					continue
 
 
-			btn = buttons.ShelfButton.createFromMaya(event.mimeData(), control, controlType)
+			btn = shelfbutton.ShelfButton.createFromMaya(event.mimeData(), control, controlType)
 			self.shelfLayout.insertWidget(dropIndex, btn)
