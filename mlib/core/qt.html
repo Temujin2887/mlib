@@ -59,7 +59,7 @@
 <span id="module-documentation"></span><h2>Module documentation<a class="headerlink" href="#module-mlib.core.qt" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mlib.core.qt.loadUiFile">
-<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">loadUiFile</tt><big>(</big><em>uiPath</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#loadUiFile"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.loadUiFile" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">loadUiFile</tt><big>(</big><em>uiPath</em>, <em>appname=None</em>, <em>manage_settings=True</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#loadUiFile"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.loadUiFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a designer UI xml file in</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -71,8 +71,6 @@ It is also not necessary to include the <cite>.ui</cite> extension.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Window Class defined by the input UI file</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#mlib.core.qt.DesignerForm" title="mlib.core.qt.DesignerForm"><tt class="xref py py-class docutils literal"><span class="pre">DesignerForm</span></tt></a></td>
-</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -80,7 +78,7 @@ It is also not necessary to include the <cite>.ui</cite> extension.</td>
 <dl class="class">
 <dt id="mlib.core.qt.DesignerForm">
 <em class="property">class </em><tt class="descclassname">mlib.core.qt.</tt><tt class="descname">DesignerForm</tt><big>(</big><em>parent=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QWidget</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Base class for widgets loaded with loadUiType.
 This class provides convenience functions, and manages a few of the more specific features of the loadUiFile function.</p>
 <dl class="method">
@@ -493,6 +491,61 @@ If the object does not exist, returns None</p>
 <tt class="descname">group</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#InitialSettings.group"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.InitialSettings.group" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="mlib.core.qt.BaseCallback">
+<em class="property">class </em><tt class="descclassname">mlib.core.qt.</tt><tt class="descname">BaseCallback</tt><big>(</big><em>func</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#mlib.core.qt.BaseCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Callback object similar to functools.partial.
+It bakes arguments at creation time and makes itself callable.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mlib.core.qt.Callback">
+<em class="property">class </em><tt class="descclassname">mlib.core.qt.</tt><tt class="descname">Callback</tt><big>(</big><em>func</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#mlib.core.qt.Callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mlib.core.qt.BaseCallback" title="mlib.core.qt.BaseCallback"><tt class="xref py py-class docutils literal"><span class="pre">mlib.core.qt.BaseCallback</span></tt></a></p>
+<dl class="classmethod">
+<dt id="mlib.core.qt.Callback.callbackStack">
+<em class="property">classmethod </em><tt class="descname">callbackStack</tt><big>(</big><big>)</big><a class="headerlink" href="#mlib.core.qt.Callback.callbackStack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.qt.undoable">
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">undoable</tt><big>(</big><em>func</em><big>)</big><a class="headerlink" href="#mlib.core.qt.undoable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the decorated function undoable in Maya using a Callback</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>func</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a>) &#8211; function to decorate</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Wrapper Callback</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Callback</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.qt.notundoable">
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">notundoable</tt><big>(</big><em>func</em><big>)</big><a class="headerlink" href="#mlib.core.qt.notundoable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the decorated function not undoable in Maya using a Callback</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>func</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a>) &#8211; Decorated function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Wrapper Callback</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Callback</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
