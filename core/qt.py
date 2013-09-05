@@ -489,16 +489,16 @@ def getSettings(appName, unique=False, version=None):
 	:return: QtCore.QSettings -- Settings object
 	"""
 	ukey = __name__ + '_QSettings'
-	if not unique and (appName, version) in __main__.__dict__.setdefault('lib.ui.Qt_settings', {}):
+	if not unique and (appName, version) in __main__.__dict__.setdefault(__name__+'_settings', {}):
 		return __main__.__dict__[ukey][(appName, version)]
 
 	if has_maya:
-		settingsPath = os.path.join(cmds.internalVar(upd=True), 'qtSettings', appName+'.ini')
+		settingsPath = os.path.join(cmds.internalVar(upd=True), 'mlib_settings', appName+'.ini')
 		settingsPath = os.path.normpath(settingsPath)
 		settings = QtCore.QSettings(settingsPath, QtCore.QSettings.IniFormat)
 		settings.setParent(getMayaWindow())
 	else:
-		settings = QtCore.QSettings('Maya', appName)
+		settings = QtCore.QSettings('MLib', appName)
 
 	if not unique:
 		__main__.__dict__[ukey][(appName, version)] = settings
