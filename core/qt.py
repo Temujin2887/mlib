@@ -133,11 +133,9 @@ try:
 
 	import maya
 	import maya.mel as mel
-	import maya.OpenMaya as api
-	import maya.OpenMayaUI as apiUI
+	import maya.OpenMaya as om
+	import maya.OpenMayaUI as omUI
 
-	#Define Callback function to handle our callback wrapper
-	mel.eval("global proc Callback(string $description){};")
 	has_maya = True
 except (ImportError, SystemError, AttributeError):
 	has_maya = False
@@ -611,16 +609,33 @@ def saveLoadState(settings, widget, key=None, save=True):
 			elif value == 'true':
 				value = True
 
+		###Checkable/Check widgets###
 		if isinstance(widget, QtGui.QCheckBox):
 			if save:
 				settings.setValue(key, widget.checkState())
 			else:
 				widget.setCheckState(int(value))
+
 		elif isinstance(widget, QtGui.QAbstractButton) and widget.isCheckable():
 			if save:
 				settings.setValue(key, widget.isChecked())
 			else:
 				widget.setChecked(value)
+
+		elif isinstance(widget, QtGui.QAction) and widget.isCheckable():
+			if save:
+				settings.setValue(key, widget.isChecked())
+			else:
+				widget.setChecked(value)
+
+		elif isinstance(widget, QtGui.QGroupBox) and widget.isCheckable():
+			if save:
+				settings.setValue(key, widget.isChecked())
+			else:
+				widget.setChecked(value)
+				widget.toggled.emit(value)
+
+		###Dropdown/index widgets###
 		elif isinstance(widget, QtGui.QComboBox):
 			if save:
 				settings.setValue(key, widget.currentText())
@@ -628,51 +643,34 @@ def saveLoadState(settings, widget, key=None, save=True):
 				index = widget.findText(value)
 				if index >= 0:
 					widget.setCurrentIndex(widget.findText(value))
-		elif isinstance(widget, QtGui.QLineEdit):
-			if save:
-				settings.setValue(key, widget.text())
-			else:
-				widget.setText(value)
-		elif isinstance(widget, QtGui.QTextEdit):
-			if save:
-				settings.setValue(key, widget.toHtml())
-			else:
-				widget.setHtml(value)
+
 		elif isinstance(widget, QtGui.QTabWidget):
 			if save:
 				settings.setValue(key, widget.currentIndex())
 			else:
 				widget.setCurrentIndex(int(value))
-		elif isinstance(widget, QtGui.QSplitter):
+
+
+		###Text Widgets###
+		elif isinstance(widget, QtGui.QLineEdit):
 			if save:
-				sizes = widget.sizes()
-				if sum(sizes):
-					settings.setValue(key, sizes)
+				settings.setValue(key, widget.text())
 			else:
-				widget.setSizes([float(v) for v in value])
-		elif isinstance(widget, QtGui.QSpinBox) or isinstance(widget, QtGui.QDoubleSpinBox):
+				widget.setText(value)
+
+		elif isinstance(widget, QtGui.QPlainTextEdit):
 			if save:
-				settings.setValue(key, widget.value())
+				settings.setValue(key, widget.toPlainText())
 			else:
-				if isinstance(widget, QtGui.QSpinBox):
-					widget.setValue(int(value))
-				else:
-					widget.setValue(float(value))
-		elif isinstance(widget, QtGui.QDateTimeEdit):
+				widget.setPlainText(value)
+
+		elif isinstance(widget, QtGui.QTextEdit):
 			if save:
-				settings.setValue(key, widget.dateTime())
+				settings.setValue(key, widget.toHtml())
 			else:
-				widget.setDateTime(value)
-		elif isinstance(widget, QtGui.QCalendarWidget):
-			if save:
-				settings.setValue(key, widget.selectedDate())
-			else:
-				widget.setSelectedDate(value)
-		elif isinstance(widget, QtGui.QAbstractSlider):
-			if save:
-				settings.setValue(key, widget.sliderPosition())
-			else:
-				widget.setSliderPosition(float(value))
+				widget.setHtml(value)
+
+		###List/Tree headers###
 		elif isinstance(widget, QtGui.QHeaderView):
 			if save:
 				indices = range(widget.count())
@@ -686,17 +684,42 @@ def saveLoadState(settings, widget, key=None, save=True):
 				indices = [int(v) for v in order]
 				for i, logicalIndex in enumerate(indices):
 					widget.moveSection(widget.visualIndex(logicalIndex), i)
-		elif isinstance(widget, QtGui.QAction) and widget.isCheckable():
+
+		###Splitters, sliders, odd widgets###
+		elif isinstance(widget, QtGui.QSplitter):
 			if save:
-				settings.setValue(key, widget.isChecked())
+				sizes = widget.sizes()
+				if sum(sizes):
+					settings.setValue(key, sizes)
 			else:
-				widget.setChecked(value)
-		elif isinstance(widget, QtGui.QGroupBox) and widget.isCheckable():
+				widget.setSizes([float(v) for v in value])
+
+		elif isinstance(widget, QtGui.QAbstractSlider):
 			if save:
-				settings.setValue(key, widget.isChecked())
+				settings.setValue(key, widget.sliderPosition())
 			else:
-				widget.setChecked(value)
-				widget.toggled.emit(value)
+				widget.setSliderPosition(float(value))
+
+		elif isinstance(widget, QtGui.QSpinBox) or isinstance(widget, QtGui.QDoubleSpinBox):
+			if save:
+				settings.setValue(key, widget.value())
+			else:
+				if isinstance(widget, QtGui.QSpinBox):
+					widget.setValue(int(value))
+				else:
+					widget.setValue(float(value))
+
+		elif isinstance(widget, QtGui.QDateTimeEdit):
+			if save:
+				settings.setValue(key, widget.dateTime())
+			else:
+				widget.setDateTime(value)
+		elif isinstance(widget, QtGui.QCalendarWidget):
+			if save:
+				settings.setValue(key, widget.selectedDate())
+			else:
+				widget.setSelectedDate(value)
+
 	finally:
 		settings.endGroup()
 
@@ -714,11 +737,11 @@ def toQtObject(mayaName):
 	:return: Widget Object
 	:rtype: QtCore.QWidget
 	"""
-	ptr = apiUI.MQtUtil.findControl(mayaName)
+	ptr = omUI.MQtUtil.findControl(mayaName)
 	if ptr is None:
-		ptr = apiUI.MQtUtil.findLayout(mayaName)
+		ptr = omUI.MQtUtil.findLayout(mayaName)
 		if ptr is None:
-			ptr = apiUI.MQtUtil.findMenuItem(mayaName)
+			ptr = omUI.MQtUtil.findMenuItem(mayaName)
 	return wrapinstance(ptr)
 
 
@@ -730,7 +753,7 @@ def getMayaWindow():
 	:rtype: QtGui.QMainWindow
 	"""
 	try:
-		ptr = apiUI.MQtUtil.mainWindow()
+		ptr = omUI.MQtUtil.mainWindow()
 		return wrapinstance(ptr)
 	except Exception:
 		return None
@@ -745,7 +768,7 @@ def widgetToMayaName(widget):
 	:return: Maya UI path, or None
 	:rtype: str
 	"""
-	return apiUI.MQtUtil.fullName(unwrapinstance(widget))
+	return omUI.MQtUtil.fullName(unwrapinstance(widget))
 
 
 def getParentWidget(widget):
@@ -757,7 +780,7 @@ def getParentWidget(widget):
 	:return: Parent widget or None
 	:rtype: QtGui.QWidget
 	"""
-	ptr = apiUI.MQtUtil.getParent(unwrapinstance(widget))
+	ptr = omUI.MQtUtil.getParent(unwrapinstance(widget))
 	return wrapinstance(long(ptr))
 
 
@@ -794,3 +817,160 @@ class InitialSettings(dict):
 
 	def group(self):
 		return '/'.join(self._group)
+
+
+
+###--------------------------------------------------------------------###
+###Callback class to behave like partial but with undo support for PyQt###
+###--------------------------------------------------------------------###
+if has_maya:
+	class BaseCallback(object):
+		"""
+		Callback object similar to functools.partial.
+		It bakes arguments at creation time and makes itself callable.
+		"""
+		def __init__(self, func, *args, **kwargs):
+			#Update the self to match the function signature using functools.update_wrapper
+			update_wrapper(self, func)
+			self.func = func
+			self.args = args
+			self.kwargs = kwargs
+
+			#Partial objects dont have a __name__, add it if missing
+			if not hasattr(self.func, '__name__'):
+				self.func.__name__ = type(self.func).__name__
+
+			#Internal vars, ideally these wont clash with user args...
+			self.noUndo = self.kwargs.pop('_callbackNoUndo', False)
+			self.useCallArgs = self.kwargs.pop('_callbackWithArgs', False)
+			self.callbackName = self.kwargs.pop('_callbackName', self.func.__name__)
+
+		def __str__(self):
+			return self.func.__name__
+
+		def __repr__(self):
+			return '<<Callback function="%s", Args=%s, Kwargs=%s>>'%(self.func.__name__, self.args, self.kwargs)
+
+		def __get__(self, obj, type=None):
+			"""
+			Handle class methods as well
+			"""
+			func = partial(self, obj)
+			update_wrapper(func, self.func) #Mask the partial as the original class method
+			return func
+
+	if om.MGlobal.apiVersion()>201400: #2014
+		#supports the undoChunk argument and handles nested undo chunks better
+		class Callback(BaseCallback):
+			def __call__(self, *args, **kwargs):
+				call_args = self.args[:]
+				call_kwargs = self.kwargs.copy()
+				if self.useCallArgs:
+					call_args+=args
+					call_kwargs.update(kwargs)
+				name = str(self.callbackName)
+
+				#Prepare undo queue
+				if not self.noUndo:
+					#Open and close an undo chunk to make sure this gets compressed to a single undo
+					cmds.undoInfo(openChunk=True, chunkName=name)
+				else:
+					#Unless we are in "No Undo" mode, in which case we temporarily disable the undo queue and then restore it's state afterwards
+					state = cmds.undoInfo(q=True, st=True)
+					cmds.undoInfo(swf=False)
+
+				#Run function
+				try:
+					log.info('Running Callback(%s): (%s)\n\tArgs: %s\n\tKwargs: %s'%(name, self.func, call_args, call_kwargs))
+					return self.func(*call_args, **call_kwargs) #Run Callback
+
+				#Cleanup after function
+				finally:
+					if not self.noUndo:
+						cmds.undoInfo(closeChunk=True)
+					else:
+						cmds.undoInfo(swf=state)
+	else:
+		#Must handle undo chunks names the old way, and deal with nested undo chunks...
+		#Define Callback function to handle our callback wrapper
+		mel.eval("global proc Callback(string $description){};")
+		class Callback(BaseCallback):
+			@classmethod
+			def callbackStack(cls):
+				return __main__.__dict__.setdefault('%s.%s_Stack'%(__name__, cls.__name__), [])
+
+			def __call__(self, *args, **kwargs):
+				stack = self.callbackStack()
+				stack.append(self)
+				stack_depth = len(stack)-1
+				try:
+					call_args = self.args[:]
+					call_kwargs = self.kwargs.copy()
+					if self.useCallArgs:
+						call_args+=args
+						call_kwargs.update(kwargs)
+					name = str(self.callbackName)
+
+					#Prepare undo queue
+					if not self.noUndo:
+						#Open and close an undo chunk to make sure this gets compressed to a single undo
+						if not stack_depth:
+							cmds.undoInfo(openChunk=True)
+							try:
+								mel.eval('Callback "%s"'%name)
+							except (SyntaxError, ValueError):
+								pass
+					else:
+						#Unless we are in "No Undo" mode, in which case we temporarily disable the undo queue and then restore it's state afterwards
+						state = cmds.undoInfo(q=True, st=True)
+						cmds.undoInfo(swf=False)
+
+					#Run function
+					try:
+						log.info('Running Callback(%s): %s (%s)\n\tArgs: %s\n\tKwargs: %s'%(name, stack_depth, self.func, call_args, call_kwargs))
+						return self.func(*call_args, **call_kwargs) #Run Callback
+
+					#Cleanup after function
+					finally:
+
+						if not self.noUndo:
+							if not stack_depth:
+								cmds.undoInfo(closeChunk=True)
+						else:
+							cmds.undoInfo(swf=state)
+
+				finally:
+					stack.pop(-1)
+else:
+	Callback = partial
+
+
+def undoable(func):
+	"""
+	Make the decorated function undoable in Maya using a Callback
+
+	:param func: function to decorate
+	:type func: callable
+	:return: Wrapper Callback
+	:rtype: Callback
+	"""
+	if globals().has_key('maya'):
+		callback = Callback(func, _callbackWithArgs=True)
+		return callback
+	else:
+		return func
+
+def notundoable(func):
+	"""
+	Make the decorated function not undoable in Maya using a Callback
+
+	:param func: Decorated function
+	:type func: callable
+	:return: Wrapper Callback
+	:rtype: Callback
+	"""
+	if globals().has_key('maya'):
+		callback = Callback(func, _callbackWithArgs=True, _callbackNoUndo=True)
+		return callback
+	else:
+		return func
