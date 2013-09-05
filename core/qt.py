@@ -615,7 +615,7 @@ def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skip
 	if windowStateOnly:
 		return
 
-	children = widget.findChildren(QtGui.QWidget, '')
+	children = widget.findChildren(QtGui.QWidget)
 	ignore = ignore or []
 	for child in children:
 		if child in ignore or child.objectName() in ignore:
@@ -765,11 +765,23 @@ def saveLoadState(settings, widget, key=None, save=True):
 				settings.setValue(key, widget.dateTime())
 			else:
 				widget.setDateTime(value)
+
 		elif isinstance(widget, QtGui.QCalendarWidget):
 			if save:
 				settings.setValue(key, widget.selectedDate())
 			else:
 				widget.setSelectedDate(value)
+
+		else:
+			handled = False
+		
+
+		if not handled:
+			mode = 'save' if save else 'load'
+			log.debug('Unable to %s control, its type is not supported: (%s)%s'%(mode, type(widget), widget))
+		else:
+			mode = 'Saved' if save else 'Loaded'
+			log.debug('%s widget: %s with key: %s'%(mode, widget, key))
 
 	finally:
 		settings.endGroup()
