@@ -219,6 +219,7 @@ class DesignerForm(object):
 	_uiPath = None
 	_appName = None
 	_manage_settings = True
+	_ignored_widgets = []
 
 	def __init__(self, parent=None):
 		super(DesignerForm, self).__init__(parent)
@@ -237,13 +238,16 @@ class DesignerForm(object):
 	def showEvent(self, event):
 		#If we manage settings, load the state on first show
 		if not self.__has_loaded and self._manage_settings:
-			self.loadSettings()
+			self.loadSettings(self._ignored_widgets)
 			self.__has_loaded = True
 
 	def closeEvent(self, event):
 		#If we manage settings save the settings on close
 		if self._manage_settings:
-			self.saveSettings()
+			self.saveSettings(self._ignored_widgets)
+
+	def setUnmanagedWidgets(self, widgets):
+		self._ignored_widgets += widgets
 
 	@classmethod
 	def showUI(cls, *args, **kwargs):
