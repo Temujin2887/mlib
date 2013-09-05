@@ -141,38 +141,38 @@ except (ImportError, SystemError, AttributeError):
 	has_maya = False
 
 
-def loadUiFile(uiPath, appname=None, manage_settings=True):
+def loadUiFile(ui_path, appname=None, manage_settings=True):
 	"""
 	Load a designer UI xml file in
 
-	:param uiPath: Path to UI file.
-		``uiPath`` be a partial path relative to the file calling :py:func:`.loadUiFile`.
+	:param ui_path: Path to UI file.
+		``ui_path`` be a partial path relative to the file calling :py:func:`.loadUiFile`.
 		It is also not necessary to include the `.ui` extension.
 
-	:type uiPath: str
+	:type ui_path: str
 	:return: Window Class defined by the input UI file
 	"""
 	#Add extension if missing..
-	if not uiPath.endswith('.ui'):
-		uiPath += '.ui'
+	if not ui_path.endswith('.ui'):
+		ui_path += '.ui'
 
-	if not os.path.isfile(uiPath):
+	if not os.path.isfile(ui_path):
 		#Resolve partial path into full path based on the call stack
 		frame = inspect.currentframe().f_back  #Back up one from the current frame
 		modpath = frame.f_code.co_filename  #Grab the filename from the code object
 		base_directory = os.path.dirname(modpath)
 
-		resolvePath = os.path.join(base_directory, uiPath)
+		resolvePath = os.path.join(base_directory, ui_path)
 
 		if os.path.isfile(resolvePath):
-			uiPath = resolvePath
+			ui_path = resolvePath
 		else:
-			raise ValueError('Could not locate UI file at path: %s' % uiPath)
+			raise ValueError('Could not locate UI file at path: %s' % ui_path)
 
 	#Load the form class, and establish what the base class for the top level is in order to sub-class it
 	if qt_lib == 'pyqt':
 		#This step is easy with PyQt
-		with open(uiPath, 'r') as f:
+		with open(ui_path, 'r') as f:
 			form_class, base_class = uic.loadUiType(f)
 
 	elif qt_lib == 'pyside':
@@ -181,11 +181,11 @@ def loadUiFile(uiPath, appname=None, manage_settings=True):
 		so we have to convert the ui file to py code in-memory first
 		and then execute it in a special frame to retrieve the form_class.
 		"""
-		parsed = xml.parse(uiPath)
+		parsed = xml.parse(ui_path)
 		widget_class = parsed.find('widget').get('class')
 		form_class = parsed.find('class').text
 
-		with open(uiPath, 'r') as f:
+		with open(ui_path, 'r') as f:
 			o = StringIO()
 			frame = {}
 
@@ -203,10 +203,10 @@ def loadUiFile(uiPath, appname=None, manage_settings=True):
 
 	class FormClass(DesignerForm, form_class, base_class): pass
 	if not appname:
-		appname, ext = os.path.splitext(os.path.basename(uiPath))
+		appname, ext = os.path.splitext(os.path.basename(ui_path))
 
 	FormClass.setAppName(appname)
-	FormClass.setui_path(ui_path)
+	FormClass.setUiPath(ui_path)
 	FormClass.setSettingsManaged(manage_settings)
 	return FormClass
 
@@ -231,29 +231,105 @@ class DesignerForm(object):
 		saveLoadSettings(self, settings=self.__initial_settings)
 
 		#Create a settings object for the user if they have us managing their settings
-		if self._manage_settings:
+		if self.getSettingsManaged():
 			self.__has_loaded = False
-			self.settings = getSettings(self._appName, self)
+			self.settings = getSettings(self.getAppName(), self)
 
 	def showEvent(self, event):
 		#If we manage settings, load the state on first show
-		if not self.__has_loaded and self._manage_settings:
-			self.loadSettings(self.__unmanaged_widgets)
+		if not self.__has_loaded and self.getSettingsManaged():
+			self.loadSettings()
 			self.__has_loaded = True
 
 	def closeEvent(self, event):
 		#If we manage settings save the settings on close
-		if self._manage_settings:
-			self.saveSettings(self.__unmanaged_widgets)
+		if self.getSettingsManaged():
+			self.saveSettings()
+
+	def close(self):
+		"""
+		Slight tweak to the default close function, cleans up the window to avoid memory leaking.
+
+		.. todo::
+			Investigate if this is something people actually want, it seems safer this way, but I'm paranoid.
+
+		"""
+		QtGui.QWidget.close(self)
+		if isValid(self):
+			self.deleteLater()
+		try:
+			del self.__initial_settings
+		except AttributeError:
+			pass
 
 	def setUnmanagedWidgets(self, widgets):
 		"""
 		Set a new list of managed widgets
+
+		:param widgets: Widgets to not manage
+		:type widgets: list of QObjects or objectName's
 		"""
 		self.__unmanaged_widgets = widgets[:]
 
 	def getUnmanagedWidgets(self):
 		return self.__unmanaged_widgets
+
+	def saveSettings(self, ignore=None):
+		"""
+
+		:param ignore:
+		"""
+		if self.getSettingsManaged() and ignore is None:
+			ignore = self.getUnmanagedWidgets()
+
+		saveLoadSettings(self, ignore)
+
+	def loadSettings(self, ignore=None):
+		"""
+
+		:param ignore:
+		"""
+		if self.getSettingsManaged() and ignore is None:
+			ignore = self.getUnmanagedWidgets()
+
+		saveLoadSettings(self, ignore, False)
+
+	def resetSettings(self, ignore=None, skipGeometry=False, skipWindowState=False):
+		"""
+		Reset the window to it's "initial" state from when the UI for was loaded
+
+
+		:param ignore:
+		:param skipGeometry:
+		:param skipWindowState:
+		"""
+		log.info('Resetting window settings!')
+		settings = InitialSettings(self.__initial_settings.items())
+
+		if not skipGeometry:
+			geom = settings.value('geometry', None)
+			if geom:
+				settings.setValue('geometry', geom.moveTo(self.geometry().topLeft()))
+
+		if self.getSettingsManaged() and ignore is None:
+			ignore = self.getUnmanagedWidgets()
+
+		saveLoadSettings(self, ignore=ignore, save=False, settings=self.__initial_settings,
+		                 skipGeometry=skipGeometry, skipWindowState=skipWindowState)
+
+	def saveWindowState(self):
+		"""
+		Save position/size of window
+		"""
+		saveLoadSettings(self, windowStateOnly=True)
+
+	def loadWindowState(self):
+		"""
+		Load position/size of window
+		"""
+		saveLoadSettings(self, save=False, windowStateOnly=True)
+	
+	
 
 	@classmethod
 	def setAppName(cls, appname):
@@ -264,18 +340,18 @@ class DesignerForm(object):
 		return cls.__app_name
 
 	@classmethod
-	def setui_path(cls, path):
+	def setUiPath(cls, path):
 		cls.__ui_path = path
 
-	@classmethod(cls):
-	def getui_path(cls):
+	@classmethod
+	def getUiPath(cls):
 		return cls.__ui_path
 
 	@classmethod
 	def setSettingsManaged(cls, state):
 		cls.__managed = state
 
-	@classmethod(cls):
+	@classmethod
 	def getSettingsManaged(cls):
 		return cls.__managed
 
@@ -290,12 +366,14 @@ class DesignerForm(object):
 		"""
 		ukey = __name__ + '_loadUiWindows'
 		windows = __main__.__dict__.setdefault(ukey, {})
-		widget = windows.get(cls._uiPath)
+
+		ui_path = cls.getUiPath()
+		widget = windows.get(ui_path)
 		closeAndCleanup(widget)
 
-		windows[cls._uiPath] = cls(*args, **kwargs)
-		windows[cls._uiPath].show()
-		return windows[cls._uiPath]
+		windows[ui_path] = cls(*args, **kwargs)
+		windows[ui_path].show()
+		return windows[ui_path]
 
 	@classmethod
 	def closeUI(cls):
@@ -319,74 +397,12 @@ class DesignerForm(object):
 		"""
 		ukey = __name__ + '_loadUiWindows'
 		windows = __main__.__dict__.setdefault(ukey, {})
-		widget = windows.get(cls._uiPath)
+		widget = windows.get(cls.getUiPath())
 		if isValid(widget) and widget.isVisible():
 			return widget
 		if create:
 			return cls.showUI()
 		return None
-
-	def resetSettings(self, ignore=None, skipGeometry=False, skipWindowState=False):
-		"""
-		Reset the window to it's "initial" state from when the UI for was loaded
-
-
-		:param ignore:
-		:param skipGeometry:
-		:param skipWindowState:
-		"""
-		log.info('Resetting window settings!')
-		settings = InitialSettings(self.__initial_settings.items())
-
-		if not skipGeometry:
-			geom = settings.value('geometry', None)
-			if geom:
-				settings.setValue('geometry', geom.moveTo(self.geometry().topLeft()))
-
-		saveLoadSettings(self, ignore=ignore, save=False, settings=self.__initial_settings,
-		                 skipGeometry=skipGeometry, skipWindowState=skipWindowState)
-
-	def saveSettings(self, ignore=None):
-		"""
-
-		:param ignore:
-		"""
-		saveLoadSettings(self, ignore)
-
-	def loadSettings(self, ignore=None):
-		"""
-
-		:param ignore:
-		"""
-		saveLoadSettings(self, ignore, False)
-
-	def saveWindowState(self):
-		"""
-		Save position/size of window
-		"""
-		saveLoadSettings(self, windowStateOnly=True)
-
-	def loadWindowState(self):
-		"""
-		Load position/size of window
-		"""
-		saveLoadSettings(self, save=False, windowStateOnly=True)
-
-	def close(self):
-		"""
-		Slight tweak to the default close function, cleans up the window to avoid memory leaking.
-
-		.. todo::
-			Investigate if this is something people actually want, it seems safer this way, but I'm paranoid.
-
-		"""
-		QtGui.QWidget.close(self)
-		if isValid(self):
-			self.deleteLater()
-		try:
-			del self.__initial_settings
-		except AttributeError:
-			pass
 
 ###-----------------------------------###
 ###Convience functions to help with Qt###
@@ -599,24 +615,19 @@ def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skip
 	if windowStateOnly:
 		return
 
-	ignored_names = []
-	for item in ignore or []:
-		if isinstance(item, basestring):
-			ignored_names.append(item)
-		elif isinstance(item, QtCore.QObject):
-			if isValid(item) and widget.objectName():
-				ignored_names.append(widget.objectName())
-
-	items = sorted(dir(widget))
-	for item in items:
-		if (ignore and item in ignored_names) or item.startswith('__'):
+	children = widget.findChildren(QtGui.QWidget, '')
+	ignore = ignore or []
+	for child in children:
+		if child in ignore or child.objectName() in ignore:
+			log.debug('Skipping ignored widget: %s %s'%(repr(child.objectName()), child))
 			continue
-		value = getattr(widget, item)
-		if isinstance(value, QtCore.QObject) and hasattr(value, 'objectName'):
-			key = value.objectName()
-			if not key:
-				continue #Don't load un-named objects
-			saveLoadState(settings, value, key, save)
+
+		if not child.objectName():
+			log.debug('Cannot save child widget, it has no objectName! %s'%child)
+			continue
+
+		key = value.objectName()
+		saveLoadState(settings, value, key, save)
 
 
 def saveLoadState(settings, widget, key=None, save=True):
