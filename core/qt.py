@@ -205,9 +205,9 @@ def loadUiFile(uiPath, appname=None, manage_settings=True):
 	if not appname:
 		appname, ext = os.path.splitext(os.path.basename(uiPath))
 
-	FormClass._appName = appname
-	FormClass._uiPath = uiPath
-	FormClass._manage_settings = manage_settings
+	FormClass.setAppName(appname)
+	FormClass.setui_path(ui_path)
+	FormClass.setSettingsManaged(manage_settings)
 	return FormClass
 
 
@@ -216,10 +216,10 @@ class DesignerForm(object):
 	Base class for widgets loaded with loadUiType.
 	This class provides convenience functions, and manages a few of the more specific features of the loadUiFile function.
 	"""
-	_uiPath = None
-	_appName = None
-	_manage_settings = True
-	_ignored_widgets = []
+	__ui_path = None
+	__app_name = None
+	__managed = True
+	__unmanaged_widgets = []
 
 	def __init__(self, parent=None):
 		super(DesignerForm, self).__init__(parent)
@@ -238,16 +238,46 @@ class DesignerForm(object):
 	def showEvent(self, event):
 		#If we manage settings, load the state on first show
 		if not self.__has_loaded and self._manage_settings:
-			self.loadSettings(self._ignored_widgets)
+			self.loadSettings(self.__unmanaged_widgets)
 			self.__has_loaded = True
 
 	def closeEvent(self, event):
 		#If we manage settings save the settings on close
 		if self._manage_settings:
-			self.saveSettings(self._ignored_widgets)
+			self.saveSettings(self.__unmanaged_widgets)
 
 	def setUnmanagedWidgets(self, widgets):
-		self._ignored_widgets += widgets
+		"""
+		Set a new list of managed widgets
+		"""
+		self.__unmanaged_widgets = widgets[:]
+
+	def getUnmanagedWidgets(self):
+		return self.__unmanaged_widgets
+
+	@classmethod
+	def setAppName(cls, appname):
+		cls.__app_name = appname
+
+	@classmethod
+	def getAppName(cls):
+		return cls.__app_name
+
+	@classmethod
+	def setui_path(cls, path):
+		cls.__ui_path = path
+
+	@classmethod(cls):
+	def getui_path(cls):
+		return cls.__ui_path
+
+	@classmethod
+	def setSettingsManaged(cls, state):
+		cls.__managed = state
+
+	@classmethod(cls):
+	def getSettingsManaged(cls):
+		return cls.__managed
 
 	@classmethod
 	def showUI(cls, *args, **kwargs):
