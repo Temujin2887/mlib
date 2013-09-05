@@ -201,7 +201,7 @@ def loadUiFile(uiPath):
 			form_class = frame['Ui_%s' % form_class]
 			base_class = eval('QtGui.%s' % widget_class)
 
-	class WindowClass(form_class, base_class, DesignerForm): pass
+	class WindowClass(form_class, DesignerForm, base_class): pass
 	WindowClass._appName = uiPath
 	WindowClass._uiPath = uiPath
 	WindowClass.ensurePolished = DesignerForm.ensurePolished
