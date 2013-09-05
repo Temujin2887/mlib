@@ -649,6 +649,7 @@ def saveLoadState(settings, widget, key=None, save=True):
 		if not key:
 			return
 
+	handled = True
 	settings.beginGroup('ControlStates')
 	try:
 		if not save:
