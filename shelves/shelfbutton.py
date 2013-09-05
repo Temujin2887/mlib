@@ -30,13 +30,13 @@ class ShelfButton(QtGui.QToolButton):
 		'''
 
 		#color = ['50, 0, 50, 100', '50, 0, 0, 100', '0, 0, 50, 100', '0, 50, 0, 100', '50, 50, 0, 100']
-		#self.setStyleSheet('QToolButton{background: rgba(%s);}'%random.choice(color))
+		#self.setStyleSheet('QToolButton{background-color: rgba(%s);border-radius: 5px;}'%random.choice(color))
 
 		self.labelRenderer = QtGui.QTextDocument(self)
 		self.labelRenderer.setDocumentMargin(0)
 
-		if random.randint(0, 4)>0:
-			self.setPopupMode(random.choice([self.MenuButtonPopup, self.DelayedPopup, self.InstantPopup]))
+		if random.randint(0, 4)>3:
+			self.setPopupMode(random.choice([self.MenuButtonPopup, self.InstantPopup]))
 			self.setMenu(QtGui.QMenu(self))
 			self.menu().addAction('test 1')
 			self.menu().addAction('test 2')
