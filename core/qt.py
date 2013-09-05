@@ -541,6 +541,9 @@ def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skip
 	if skipWindowState is None:
 		skipWindowState = skipGeometry
 
+	if not hasattr(widget, 'saveState'):
+		skipWindowState = True
+
 	if save:
 		if not skipGeometry:
 			settings.setValue('geometry', widget.geometry())
@@ -552,7 +555,7 @@ def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skip
 			if geom:
 				widget.setGeometry(geom)
 
-		if not skipWindowState:
+		if not skipWindowState and hasattr(widget, 'restoreState'):
 			widget.restoreState(settings.value('windowState', widget.saveState()))
 
 	if windowStateOnly:
