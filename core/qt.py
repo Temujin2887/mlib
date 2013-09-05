@@ -626,8 +626,8 @@ def saveLoadSettings(widget, ignore=None, save=True, windowStateOnly=False, skip
 			log.debug('Cannot save child widget, it has no objectName! %s'%child)
 			continue
 
-		key = value.objectName()
-		saveLoadState(settings, value, key, save)
+		key = child.objectName()
+		saveLoadState(settings, child, key, save)
 
 
 def saveLoadState(settings, widget, key=None, save=True):
