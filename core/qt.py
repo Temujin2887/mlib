@@ -141,7 +141,7 @@ except (ImportError, SystemError, AttributeError):
 	has_maya = False
 
 
-def loadUiFile(uiPath):
+def loadUiFile(uiPath, appname=None, manage_settings=True):
 	"""
 	Load a designer UI xml file in
 
@@ -151,7 +151,6 @@ def loadUiFile(uiPath):
 
 	:type uiPath: str
 	:return: Window Class defined by the input UI file
-	:rtype: :py:class:`.DesignerForm`
 	"""
 	#Add extension if missing..
 	if not uiPath.endswith('.ui'):
@@ -199,14 +198,20 @@ def loadUiFile(uiPath):
 			form_class = frame['Ui_%s' % form_class]
 			base_class = eval('QtGui.%s' % widget_class)
 
-	class WindowClass(form_class, DesignerForm, base_class): pass
-	WindowClass._appName = uiPath
-	WindowClass._uiPath = uiPath
-	WindowClass.ensurePolished = DesignerForm.ensurePolished
-	return WindowClass
+	if False: #Type hinting for pycharm/wing
+		base_class = QtGui.QWidget
+
+	class FormClass(DesignerForm, form_class, base_class): pass
+	if not appname:
+		appname, ext = os.path.splitext(os.path.basename(uiPath))
+
+	FormClass._appName = appname
+	FormClass._uiPath = uiPath
+	FormClass._manage_settings = manage_settings
+	return FormClass
 
 
-class DesignerForm(QtGui.QWidget):
+class DesignerForm(object):
 	"""
 	Base class for widgets loaded with loadUiType.
 	This class provides convenience functions, and manages a few of the more specific features of the loadUiFile function.
@@ -493,6 +498,7 @@ def getSettings(appName, unique=False, version=None):
 	if has_maya:
 		settingsPath = os.path.join(cmds.internalVar(upd=True), 'mlib_settings', appName+'.ini')
 		settingsPath = os.path.normpath(settingsPath)
+
 		settings = QtCore.QSettings(settingsPath, QtCore.QSettings.IniFormat)
 		settings.setParent(getMayaWindow())
 	else:
