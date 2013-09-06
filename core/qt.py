@@ -791,7 +791,7 @@ def saveLoadState(settings, widget, key=None, save=True):
 ###-----------------------------------------------------###
 ###Maya specific helpers, won't function outside of maya###
 ###-----------------------------------------------------###
-def toQtObject(mayaName):
+def pathToWidget(mayaName):
 	"""
 	Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
 	If the object does not exist, returns None
@@ -823,7 +823,7 @@ def getMayaWindow():
 		return None
 
 
-def widgetToMayaName(widget):
+def widgetToPath(widget):
 	"""
 	Return the maya full ui path to the given Qt widget
 
