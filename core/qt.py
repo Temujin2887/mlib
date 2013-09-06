@@ -832,6 +832,8 @@ def widgetToMayaName(widget):
 	:return: Maya UI path, or None
 	:rtype: str
 	"""
+	if type(widget) == type(None):
+		return
 	return omUI.MQtUtil.fullName(unwrapinstance(widget))
 
 
