@@ -20,6 +20,13 @@ def test():
 callbacks.addCallback('SelectionChanged', 'test', test)
 callbacks.removeCallback('SelectionChanged', 'test')
 
+rfunc, dfunc = make_user_event_funcs('myEvent')
+callbacks.addEvent('myEvent', rfunc, dfunc)
+
+callbacks.addCallback('myEvent', 'test', test)
+callbacks.postEvent('myEvent')
+
+
 
 """
 
@@ -87,7 +94,12 @@ def getCallbacks(event=None):
 
 
 def postEvent(event, *args, **kwargs):
-	event_handler(event, *args, **kwargs)
+	print 'Post!'
+	if om.MUserEventMessage.isUserEvent(event):
+		print 'Post user event!'
+		om.MUserEventMessage.postUserEvent(event, *args, **kwargs)
+	else:
+		event_handler(event, *args, **kwargs)
 
 def addEvent(event, register_func, deregister_func, disable_undo=False, allow_deferred=False, deferred_low_priority=False, builtin=False):
 	if event in getEvents() and not builtin:
@@ -102,6 +114,11 @@ def event_handler(event, *args, **kwargs):
 	:param kwargs:
 	:return:
 	"""
+	print 'Event Handler!', event
+	if event not in events:
+		log.error('Event handler called for event that is not supported! "%s"'%event)
+		return
+
 	checkFile = ('checkFile' in kwargs)
 	if checkFile: #Dont block file open checks
 		retCode = args[0]
@@ -181,6 +198,21 @@ def _deregisterEvent(event):
 		log.exception('Error deregistering event "%s":\n'%event)
 		return False
 
+def make_user_event_funcs(event):
+	"""
+
+	:param event:
+	:return:
+	"""
+	def rfunc(event):
+		om.MUserEventMessage.registerUserEvent(event)
+		om.MUserEventMessage.addUserEventCallback(event, partial(event_handler, event))
+
+	def dfunc(event, id):
+		om.MMessage.removeCallback(id)
+		om.MUserEventMessage.deregisterUserEvent(event)
+
+	return partial(rfunc, event), partial(dfunc, event)
 
 def add_default_events():
 	_temp = []
