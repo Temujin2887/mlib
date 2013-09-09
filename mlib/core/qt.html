@@ -59,14 +59,14 @@
 <span id="module-documentation"></span><h2>Module documentation<a class="headerlink" href="#module-mlib.core.qt" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mlib.core.qt.loadUiFile">
-<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">loadUiFile</tt><big>(</big><em>uiPath</em>, <em>appname=None</em>, <em>manage_settings=True</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#loadUiFile"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.loadUiFile" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">loadUiFile</tt><big>(</big><em>ui_path</em>, <em>appname=None</em>, <em>manage_settings=True</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#loadUiFile"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.loadUiFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a designer UI xml file in</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uiPath</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to UI file.
-<tt class="docutils literal"><span class="pre">uiPath</span></tt> be a partial path relative to the file calling <a class="reference internal" href="#mlib.core.qt.loadUiFile" title="mlib.core.qt.loadUiFile"><tt class="xref py py-func docutils literal"><span class="pre">loadUiFile()</span></tt></a>.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ui_path</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to UI file.
+<tt class="docutils literal"><span class="pre">ui_path</span></tt> be a partial path relative to the file calling <a class="reference internal" href="#mlib.core.qt.loadUiFile" title="mlib.core.qt.loadUiFile"><tt class="xref py py-func docutils literal"><span class="pre">loadUiFile()</span></tt></a>.
 It is also not necessary to include the <cite>.ui</cite> extension.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Window Class defined by the input UI file</td>
@@ -89,6 +89,118 @@ This class provides convenience functions, and manages a few of the more specifi
 <dl class="method">
 <dt id="mlib.core.qt.DesignerForm.closeEvent">
 <tt class="descname">closeEvent</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.closeEvent"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.close"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slight tweak to the default close function, cleans up the window to avoid memory leaking.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.setUnmanagedWidgets">
+<tt class="descname">setUnmanagedWidgets</tt><big>(</big><em>widgets</em><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.setUnmanagedWidgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a new list of managed widgets</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widgets</strong> (<em>list of QObjects or objectName&#8217;s</em>) &#8211; Widgets to not manage</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.getUnmanagedWidgets">
+<tt class="descname">getUnmanagedWidgets</tt><big>(</big><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.getUnmanagedWidgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.saveSettings">
+<tt class="descname">saveSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.saveSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.saveSettings" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.loadSettings">
+<tt class="descname">loadSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.loadSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.loadSettings" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.resetSettings">
+<tt class="descname">resetSettings</tt><big>(</big><em>ignore=None</em>, <em>skipGeometry=False</em>, <em>skipWindowState=False</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.resetSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.resetSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the window to it&#8217;s &#8220;initial&#8221; state from when the UI for was loaded</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ignore</strong> &#8211; </li>
+<li><strong>skipGeometry</strong> &#8211; </li>
+<li><strong>skipWindowState</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.saveWindowState">
+<tt class="descname">saveWindowState</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.saveWindowState"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.saveWindowState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save position/size of window</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mlib.core.qt.DesignerForm.loadWindowState">
+<tt class="descname">loadWindowState</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.loadWindowState"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.loadWindowState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load position/size of window</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.setAppName">
+<em class="property">classmethod </em><tt class="descname">setAppName</tt><big>(</big><em>appname</em><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.setAppName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.getAppName">
+<em class="property">classmethod </em><tt class="descname">getAppName</tt><big>(</big><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.getAppName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.setUiPath">
+<em class="property">classmethod </em><tt class="descname">setUiPath</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.setUiPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.getUiPath">
+<em class="property">classmethod </em><tt class="descname">getUiPath</tt><big>(</big><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.getUiPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.setSettingsManaged">
+<em class="property">classmethod </em><tt class="descname">setSettingsManaged</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.setSettingsManaged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mlib.core.qt.DesignerForm.getSettingsManaged">
+<em class="property">classmethod </em><tt class="descname">getSettingsManaged</tt><big>(</big><big>)</big><a class="headerlink" href="#mlib.core.qt.DesignerForm.getSettingsManaged" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
@@ -122,69 +234,6 @@ it will return the result of showUI with no arguments.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.resetSettings">
-<tt class="descname">resetSettings</tt><big>(</big><em>ignore=None</em>, <em>skipGeometry=False</em>, <em>skipWindowState=False</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.resetSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.resetSettings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset the window to it&#8217;s &#8220;initial&#8221; state from when the UI for was loaded</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ignore</strong> &#8211; </li>
-<li><strong>skipGeometry</strong> &#8211; </li>
-<li><strong>skipWindowState</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.saveSettings">
-<tt class="descname">saveSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.saveSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.saveSettings" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.loadSettings">
-<tt class="descname">loadSettings</tt><big>(</big><em>ignore=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.loadSettings"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.loadSettings" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.saveWindowState">
-<tt class="descname">saveWindowState</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.saveWindowState"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.saveWindowState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save position/size of window</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.loadWindowState">
-<tt class="descname">loadWindowState</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.loadWindowState"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.loadWindowState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load position/size of window</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="mlib.core.qt.DesignerForm.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#DesignerForm.close"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.DesignerForm.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Slight tweak to the default close function, cleans up the window to avoid memory leaking.</p>
 </dd></dl>
 
 </dd></dl>
@@ -378,8 +427,8 @@ will try to load/overwrite each others settings file/registry data.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="mlib.core.qt.toQtObject">
-<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">toQtObject</tt><big>(</big><em>mayaName</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#toQtObject"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.toQtObject" title="Permalink to this definition">¶</a></dt>
+<dt id="mlib.core.qt.pathToWidget">
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">pathToWidget</tt><big>(</big><em>mayaName</em><big>)</big><a class="headerlink" href="#mlib.core.qt.pathToWidget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the name of a Maya UI element of any type, return the corresponding QWidget or QAction.
 If the object does not exist, returns None</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -413,8 +462,8 @@ If the object does not exist, returns None</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="mlib.core.qt.widgetToMayaName">
-<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">widgetToMayaName</tt><big>(</big><em>widget</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/qt.html#widgetToMayaName"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.qt.widgetToMayaName" title="Permalink to this definition">¶</a></dt>
+<dt id="mlib.core.qt.widgetToPath">
+<tt class="descclassname">mlib.core.qt.</tt><tt class="descname">widgetToPath</tt><big>(</big><em>widget</em><big>)</big><a class="headerlink" href="#mlib.core.qt.widgetToPath" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the maya full ui path to the given Qt widget</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

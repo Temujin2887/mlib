@@ -16,6 +16,7 @@ Contents
 	mlib/core/qt
 	mlib/core/misc
 	mlib/core/types
+	mlib/core/callbacks
 
 
 

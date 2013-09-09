@@ -1,0 +1,432 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mlib.core.callbacks &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mlib.core.callbacks</h1><pre>
+__author__ = 'Nathan'
+__doc__ =\
+"""
+Callbacks system
+
+Events are registered "as needed"
+
+
+Basic examples
+--------------
+::
+
+	import mlib.core.callbacks as callbacks
+
+	#Define some callback function
+	def test():
+		print 'YAY!'
+
+	#Register it to the event "SelectionChanged"
+	callbacks.addCallback('SelectionChanged', 'test', test)
+
+
+
+
+
+reload(callbacks)
+print '\n'.join(callbacks.getEvents())
+
+
+def test():
+	print 'YAY!'
+
+callbacks.addCallback('SelectionChanged', 'test', test)
+callbacks.removeCallback('SelectionChanged', 'test')
+
+rfunc, dfunc = make_user_event_funcs('myEvent')
+callbacks.addEvent('myEvent', rfunc, dfunc)
+
+callbacks.addCallback('myEvent', 'test', test)
+callbacks.postEvent('myEvent')
+
+
+
+"""
+
+import __main__
+import logging
+import collections
+from functools import partial
+
+
+import maya.cmds as cmds
+import maya.OpenMaya as om
+
+log = logging.getLogger(__name__)
+
+#Load in the globals
+callbacks = __main__.__dict__.setdefault(__name__+'.registered_callbacks', {})
+events = __main__.__dict__.setdefault(__name__+'.supported_events', {})
+event_handles = __main__.__dict__.setdefault(__name__+'.event_handles', {})
+event_queue = __main__.__dict__.setdefault(__name__+'.event_queue', {})
+
+Callback = collections.namedtuple('Callback', ['event', 'owner', 'function', 'priority', 'immediate'])
+Event = collections.namedtuple('Event', ['name', 'register_func', 'deregister_func', 'disable_undo', 'allow_deferred', 'deferred_low_priority', 'builtin'])
+
+<div class="viewcode-block" id="getEvents"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.getEvents">[docs]</a>def getEvents():
+	"""
+	Get a list of event names that are supported
+
+	:return: Event names
+	:rtype: list
+	"""
+	return sorted(events.keys())
+</div>
+<div class="viewcode-block" id="addCallback"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.addCallback">[docs]</a>def addCallback(event, owner, function, priority=None, immediate=None):
+	"""
+	Add a callback to an event
+
+	:param event: Event to add callback for
+	:type event: str
+	:param owner: Name of callback owner (Typically your script or plugin __name__)
+	:type owner: str
+	:param function: Any callable function to execute when the event occurs. Some events also pass data to the callback function.
+	:type function: function
+	:param priority: (Optional) Callback priority. Callbacks are executed in priority order.
+	:type priority: int
+	:param immediate: Execute this callback immediately on event occurance. default compresses multiple rapid events and delays until next idle.
+	:type immediate: bool
+	"""
+	callback = Callback(event, owner, function, priority, immediate)
+
+	#Check if event is registered
+	if not event in event_handles:
+		_registerEvent(event)
+
+	callbacks.setdefault(event, {})[owner] = callback
+</div>
+<div class="viewcode-block" id="removeCallback"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.removeCallback">[docs]</a>def removeCallback(event, owner):
+	"""
+	Remove a callback from an event
+
+	:param event: Event to remove callback for
+	:type event: str
+	:param owner: Name of callback owner to remove (See :py:func:`.addCallback`)
+	:type owner: str
+	"""
+	event_callbacks = callbacks.get(event, [])
+	if owner in event_callbacks:
+		event_callbacks.pop(owner)
+
+		#Clean up unused event
+		if not event_callbacks:
+			_deregisterEvent(event)
+
+		return True
+	return False
+</div>
+<div class="viewcode-block" id="getCallbacks"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.getCallbacks">[docs]</a>def getCallbacks(event=None):
+	"""
+	Returns a list of all callbacks, sorted by priority
+
+	:param event: (Optional) event name to filter to
+	:type event: str or None
+	:return: callbacks
+	:rtype: list
+	"""
+	#Sorter
+	priority_sort = lambda callback: (callback.event.lower(),
+	                                 callback.priority,
+	                                 callback.immediate,
+									 callback.owner,)
+	if event is not None:
+		return sorted(callbacks.get(event, {}).values(), key=priority_sort, reverse=True)
+	return sorted(sum(callbacks.values()), key=priority_sort, reverse=True)
+
+</div>
+<div class="viewcode-block" id="postEvent"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.postEvent">[docs]</a>def postEvent(event, *args, **kwargs):
+	"""
+	Post an event if possible.
+	Arguments are forwarded to postUserEvent/event_handler
+
+	:param event: Event to post
+	:type event: str
+	"""
+	if om.MUserEventMessage.isUserEvent(event):
+		om.MUserEventMessage.postUserEvent(event, *args, **kwargs)
+	else:
+		event_handler(event, *args, **kwargs)
+</div>
+<div class="viewcode-block" id="addEvent"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.addEvent">[docs]</a>def addEvent(event, register_func, deregister_func, disable_undo=False, allow_deferred=False, deferred_low_priority=False, builtin=False):
+	"""
+	Define a new event for the system.
+
+	:param event: Event name
+	:type event: str
+	:param register_func: Function to register the event_handler for this event
+	:type register_func: function
+	:param deregister_func: Function to de-register the event_handler for this event (Passed the return from register_func if needed)
+	:type deregister_func: function
+	:param disable_undo: Disable the undo queue when calling callbacks, typically only needed for undo/redo based callbacks
+	:type disable_undo: bool
+	:param allow_deferred: Enable deffered callbacks, best for "rapid" events that do not need return values like SelecitonChanged. Uses evalDeferred.
+	:type allow_deferred: bool
+	:param deferred_low_priority: Use "Low priority" when deferring. Useful for *extremely* spammy events.
+	:type deferred_low_priority: bool
+	:param builtin: Flag as a builtin defined Event (From this callbacks.py module)
+	:type builtin: bool
+	"""
+	if event in getEvents() and not builtin:
+		raise ValueError('Duplicate event name!')
+	events[event] = Event(event, register_func, deregister_func, disable_undo, allow_deferred, deferred_low_priority, builtin)
+</div>
+<div class="viewcode-block" id="event_handler"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.event_handler">[docs]</a>def event_handler(event, *args, **kwargs):
+	"""
+
+	:param event:
+	:param args:
+	:param kwargs:
+	:return:
+	"""
+	print 'Event Handler!', event
+	if event not in events:
+		log.error('Event handler called for event that is not supported! "%s"'%event)
+		return
+
+	checkFile = ('checkFile' in kwargs)
+	if checkFile: #Dont block file open checks
+		retCode = args[0]
+		mFile = args[1]
+		om.MScriptUtil.setBool(retCode, True)
+
+	event_callbacks = getCallbacks(event)
+	allow_deferred = events[event].allow_deferred
+	immediate_callbacks = [callback for callback in event_callbacks if callback.immediate or not allow_deferred]
+	if immediate_callbacks:
+		log.debug('Event %s Callbacks: %s'%(event, immediate_callbacks))
+
+	add_to_queue = len(immediate_callbacks)&lt;event_callbacks
+	for callback in immediate_callbacks:
+		try:
+			if checkFile:
+				callback.function(mFile, retCode, *[arg for arg in args[2:] if arg is not None])
+			elif len([v for v in args if v is not None]):
+				callback.function(*args)
+			else:
+				callback.function()
+		except:
+			log.exception('Error handling event "%s" with event handler "%s"\n'%(event, callback.owner))
+
+	if add_to_queue:
+		if not event_queue.get(event):
+			event_queue[event] = True
+			cmds.evalDeferred(partial(queued_event_handler, event, *args, **kwargs),
+			                  lowestPriority=events[event].deferred_low_priority)
+</div>
+<div class="viewcode-block" id="queued_event_handler"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.queued_event_handler">[docs]</a>def queued_event_handler(event, *args, **kwargs):
+	event_callbacks = getCallbacks(event)
+	deferred_callbacks = [callback for callback in event_callbacks if not callback.immediate]
+	log.debug('Queued event "%s" Callbacks: %s'%(event, deferred_callbacks))
+
+	for callback in deferred_callbacks:
+		if not callback.immediate:
+			try:
+				if len([v for v in args if v is not None]):
+					callback.function(*args)
+				else:
+					callback.function()
+			except:
+				log.exception('Error handling queued event "%s" with event handler "%s"\n'%(event, callback.owner))
+
+	#Allow another event to queue
+	event_queue[event] = False
+
+</div>
+def _registerEvent(event):
+	if not event in events:
+		raise ValueError('Invalid event name: %s, not in supported events list!'%event)
+
+	if event in event_handles:
+		if not _deregisterEvent(event):
+			raise SystemError('Could not de-register old event handler, unable to re-register event: "%s"'%event)
+
+	event_handles[event] = events[event].register_func()
+	return True
+
+def _deregisterEvent(event):
+	if not event in events:
+		raise ValueError('Invalid event name: %s, not in supported events list!'%event)
+
+	if not event in event_handles:
+		return True
+
+	handle = event_handles[event]
+	try:
+		if handle is not None:
+			events[event].deregister_func(handle)
+		else:
+			events[event].deregister_func()
+		del event_handles[event]
+		return True
+	except:
+		log.exception('Error deregistering event "%s":\n'%event)
+		return False
+
+<div class="viewcode-block" id="make_user_event_funcs"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.make_user_event_funcs">[docs]</a>def make_user_event_funcs(event):
+	"""
+
+	:param event:
+	:return:
+	"""
+	def rfunc(event):
+		om.MUserEventMessage.registerUserEvent(event)
+		om.MUserEventMessage.addUserEventCallback(event, partial(event_handler, event))
+
+	def dfunc(event, id):
+		om.MMessage.removeCallback(id)
+		om.MUserEventMessage.deregisterUserEvent(event)
+
+	return partial(rfunc, event), partial(dfunc, event)
+</div>
+<div class="viewcode-block" id="add_default_events"><a class="viewcode-back" href="../../../mlib/core/callbacks.html#mlib.core.callbacks.add_default_events">[docs]</a>def add_default_events():
+	_temp = []
+	#Add builtin events
+	om.MEventMessage.getEventNames(_temp)
+	for mevent in sorted(_temp):
+		rfunc = partial(om.MEventMessage.addEventCallback, mevent, partial(event_handler, mevent))
+		dfunc = om.MMessage.removeCallback
+
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=True, builtin=True)
+
+	#Add scene events
+	scene_events = [
+		'AfterSave', 'BeforeSave',
+		'BeforeOpen', 'AfterOpen',
+		'BeforeImport', 'AfterImport',
+		'BeforeLoadReference', 'AfterLoadReference',
+		'BeforeLoadReferenceAndRecordEdits', 'AfterLoadReferenceAndRecordEdits',
+		'BeforeUnloadReference', 'AfterUnloadReference',
+		'BeforeRemoveReference', 'AfterRemoveReference',
+		'BeforeCreateReference', 'AfterCreateReference',
+		'BeforeCreateReferenceAndRecordEdits', 'AfterCreateReferenceAndRecordEdits',
+		'BeforeNew', 'AfterNew',
+		'SceneUpdate',
+		'MayaExiting',
+	]
+
+	for mevent in scene_events:
+		event_id = getattr(om.MSceneMessage, 'k%s'%mevent)
+
+		rfunc = partial(om.MSceneMessage.addCallback, event_id, partial(event_handler, mevent))
+		dfunc = om.MMessage.removeCallback
+		disable_undo = mevent in ['Undo', 'Redo']
+
+		addEvent(mevent, rfunc, dfunc, disable_undo=disable_undo, allow_deferred=True, builtin=True)
+
+
+	#Add scene check events
+	scene_check_events = [
+		('BeforeNewCheck', False),
+		('BeforeOpenCheck', True),
+	    ('BeforeSaveCheck', False),
+	    ('BeforeImportCheck', True),
+	    ('BeforeExportCheck', True),
+	    ('BeforeReferenceCheck', False),
+	    ('BeforeLoadReferenceCheck', True),
+	    ('BeforeCreateReferenceCheck', True),
+	]
+
+	for mevent, checkFile in scene_check_events:
+		event_id = getattr(om.MSceneMessage, 'k%s'%mevent)
+
+		if checkFile:
+			rfunc = partial(om.MSceneMessage.addCheckFileCallback, event_id, partial(event_handler, mevent, checkFile=True))
+		else:
+			rfunc = partial(om.MSceneMessage.addCheckCallback, event_id, partial(event_handler, mevent))
+		dfunc = om.MMessage.removeCallback
+
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=False, builtin=True)
+</div>
+add_default_events()</pre>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2pre.
+    </div>
+  </body>
+</html>

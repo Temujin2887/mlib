@@ -1,0 +1,331 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Callbacks Module &mdash; Maya open source Python/Qt tools 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Maya open source Python/Qt tools 1.0 documentation" href="../../index.html" />
+    <link rel="prev" title="Basic Types Library" href="types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="types.html" title="Basic Types Library"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-mlib.core.callbacks">
+<span id="callbacks-module"></span><h1>Callbacks Module<a class="headerlink" href="#module-mlib.core.callbacks" title="Permalink to this headline">¶</a></h1>
+<p>Callbacks system</p>
+<blockquote>
+<div><ul class="simple">
+<li>Events are registered/de-registered &#8220;as needed&#8221;, no wasted function calls from the API</li>
+<li>Callbacks can be deferred and the callback condensed when rapidly fired</li>
+<li>Callbacks can be prioritized</li>
+<li>Undo handling for events that could cause an invalid undo queue state (Undo/Redo events)</li>
+</ul>
+</div></blockquote>
+<div class="section" id="basic-examples">
+<h2>Basic examples<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">mlib.core.callbacks</span> <span class="kn">as</span> <span class="nn">callbacks</span>
+</pre></div>
+</div>
+<p>Getting events:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">callbacks</span><span class="o">.</span><span class="n">getEvents</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Adding a callback:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#Define some callback function</span>
+<span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+        <span class="k">print</span> <span class="s">&#39;Event fired!&#39;</span>
+
+<span class="c">#Register it to the event &quot;SelectionChanged&quot;</span>
+<span class="n">callbacks</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="s">&#39;SelectionChanged&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Removing a callback:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">callbacks</span><span class="o">.</span><span class="n">removeCallback</span><span class="p">(</span><span class="s">&#39;SelectionChanged&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Registering a new event type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#Either define a set of register/deregister functions or</span>
+<span class="c">#use the helper function to generate some for you</span>
+<span class="n">rfunc</span><span class="p">,</span> <span class="n">dfunc</span> <span class="o">=</span> <span class="n">make_user_event_funcs</span><span class="p">(</span><span class="s">&#39;myEvent&#39;</span><span class="p">)</span>
+<span class="n">callbacks</span><span class="o">.</span><span class="n">addEvent</span><span class="p">(</span><span class="s">&#39;myEvent&#39;</span><span class="p">,</span> <span class="n">rfunc</span><span class="p">,</span> <span class="n">dfunc</span><span class="p">)</span>
+
+<span class="c">#Add a test callback for the new event type</span>
+<span class="n">callbacks</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="s">&#39;myEvent&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span>
+
+<span class="c">#Post the event to test it out</span>
+<span class="n">callbacks</span><span class="o">.</span><span class="n">postEvent</span><span class="p">(</span><span class="s">&#39;myEvent&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="mlib.core.callbacks.getEvents">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">getEvents</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#getEvents"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.getEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of event names that are supported</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Event names</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.addCallback">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">addCallback</tt><big>(</big><em>event</em>, <em>owner</em>, <em>function</em>, <em>priority=None</em>, <em>immediate=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#addCallback"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.addCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a callback to an event</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Event to add callback for</li>
+<li><strong>owner</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of callback owner (Typically your script or plugin __name__)</li>
+<li><strong>function</strong> (<em>function</em>) &#8211; Any callable function to execute when the event occurs. Some events also pass data to the callback function.</li>
+<li><strong>priority</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; (Optional) Callback priority. Callbacks are executed in priority order.</li>
+<li><strong>immediate</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Execute this callback immediately on event occurance. default compresses multiple rapid events and delays until next idle.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.removeCallback">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">removeCallback</tt><big>(</big><em>event</em>, <em>owner</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#removeCallback"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.removeCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a callback from an event</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Event to remove callback for</li>
+<li><strong>owner</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of callback owner to remove (See <a class="reference internal" href="#mlib.core.callbacks.addCallback" title="mlib.core.callbacks.addCallback"><tt class="xref py py-func docutils literal"><span class="pre">addCallback()</span></tt></a>)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.getCallbacks">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">getCallbacks</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#getCallbacks"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.getCallbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of all callbacks, sorted by priority</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<em>str or None</em>) &#8211; (Optional) event name to filter to</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">callbacks</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.postEvent">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">postEvent</tt><big>(</big><em>event</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#postEvent"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.postEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post an event if possible.
+Arguments are forwarded to postUserEvent/event_handler</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Event to post</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.addEvent">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">addEvent</tt><big>(</big><em>event</em>, <em>register_func</em>, <em>deregister_func</em>, <em>disable_undo=False</em>, <em>allow_deferred=False</em>, <em>deferred_low_priority=False</em>, <em>builtin=False</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#addEvent"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.addEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a new event for the system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Event name</li>
+<li><strong>register_func</strong> (<em>function</em>) &#8211; Function to register the event_handler for this event</li>
+<li><strong>deregister_func</strong> (<em>function</em>) &#8211; Function to de-register the event_handler for this event (Passed the return from register_func if needed)</li>
+<li><strong>disable_undo</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Disable the undo queue when calling callbacks, typically only needed for undo/redo based callbacks</li>
+<li><strong>allow_deferred</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Enable deffered callbacks, best for &#8220;rapid&#8221; events that do not need return values like SelecitonChanged. Uses evalDeferred.</li>
+<li><strong>deferred_low_priority</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Use &#8220;Low priority&#8221; when deferring. Useful for <em>extremely</em> spammy events.</li>
+<li><strong>builtin</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flag as a builtin defined Event (From this callbacks.py module)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.event_handler">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">event_handler</tt><big>(</big><em>event</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#event_handler"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> &#8211; Event being handled</li>
+<li><strong>args</strong> &#8211; Positional arguments</li>
+<li><strong>kwargs</strong> &#8211; Keyword arguments</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.queued_event_handler">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">queued_event_handler</tt><big>(</big><em>event</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#queued_event_handler"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.queued_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.make_user_event_funcs">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">make_user_event_funcs</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#make_user_event_funcs"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.make_user_event_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a set of register/deregister functions for a MUserEventMessage with the given name.
+This is intended to make simple user events easier to implement.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> &#8211; Event name to generate functions for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Register Function, Deregister Function</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(rfunc, dfunc)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlib.core.callbacks.add_default_events">
+<tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">add_default_events</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/mlib/core/callbacks.html#add_default_events"><span class="viewcode-link">[view]</span></a><a class="headerlink" href="#mlib.core.callbacks.add_default_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate the events list with some of the builtin events</p>
+</dd></dl>
+
+</div>
+<dl class="class">
+<dt id="mlib.core.callbacks.Callback">
+<em class="property">class </em><tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">Callback</tt><a class="headerlink" href="#mlib.core.callbacks.Callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback(event, owner, function, priority, immediate)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mlib.core.callbacks.Event">
+<em class="property">class </em><tt class="descclassname">mlib.core.callbacks.</tt><tt class="descname">Event</tt><a class="headerlink" href="#mlib.core.callbacks.Event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Event(name, register_func, deregister_func, disable_undo, allow_deferred, deferred_low_priority, builtin)</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Callbacks Module</a><ul>
+<li><a class="reference internal" href="#basic-examples">Basic examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="types.html"
+                        title="previous chapter">Basic Types Library</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/mlib/core/callbacks.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="types.html" title="Basic Types Library"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Maya open source Python/Qt tools 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nathan Horne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2pre.
+    </div>
+  </body>
+</html>
