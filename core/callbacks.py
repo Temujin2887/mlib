@@ -1,32 +1,51 @@
 __author__ = 'Nathan'
 __doc__ =\
-"""
+r"""
 Callbacks system
 
-Events are registered "as needed"
+	* Events are registered/de-registered "as needed", no wasted function calls from the API
+	* Callbacks can be deferred and the callback condensed when rapidly fired
+	* Callbacks can be prioritized
+	* Undo handling for events that could cause an invalid undo queue state (Undo/Redo events)
 
 
-Basic example
+Basic examples
 --------------
+::
 
-import mlib.core.callbacks as callbacks
-reload(callbacks)
-print '\n'.join(callbacks.getEvents())
+	import mlib.core.callbacks as callbacks
+
+Getting events::
+
+	print '\n'.join(callbacks.getEvents())
+
+Adding a callback::
+
+	#Define some callback function
+	def test():
+		print 'Event fired!'
+
+	#Register it to the event "SelectionChanged"
+	callbacks.addCallback('SelectionChanged', 'test', test)
 
 
-def test():
-	print 'YAY!'
+Removing a callback::
 
-callbacks.addCallback('SelectionChanged', 'test', test)
-callbacks.removeCallback('SelectionChanged', 'test')
-
-rfunc, dfunc = make_user_event_funcs('myEvent')
-callbacks.addEvent('myEvent', rfunc, dfunc)
-
-callbacks.addCallback('myEvent', 'test', test)
-callbacks.postEvent('myEvent')
+	callbacks.removeCallback('SelectionChanged', 'test')
 
 
+Registering a new event type::
+	
+	#Either define a set of register/deregister functions or
+	#use the helper function to generate some for you
+	rfunc, dfunc = make_user_event_funcs('myEvent')
+	callbacks.addEvent('myEvent', rfunc, dfunc)
+
+	#Add a test callback for the new event type
+	callbacks.addCallback('myEvent', 'test', test)
+
+	#Post the event to test it out
+	callbacks.postEvent('myEvent')
 
 """
 
@@ -51,9 +70,29 @@ Callback = collections.namedtuple('Callback', ['event', 'owner', 'function', 'pr
 Event = collections.namedtuple('Event', ['name', 'register_func', 'deregister_func', 'disable_undo', 'allow_deferred', 'deferred_low_priority', 'builtin'])
 
 def getEvents():
+	"""
+	Get a list of event names that are supported
+
+	:return: Event names
+	:rtype: list
+	"""
 	return sorted(events.keys())
 
 def addCallback(event, owner, function, priority=None, immediate=None):
+	"""
+	Add a callback to an event
+
+	:param event: Event to add callback for
+	:type event: str
+	:param owner: Name of callback owner (Typically your script or plugin __name__)
+	:type owner: str
+	:param function: Any callable function to execute when the event occurs. Some events also pass data to the callback function.
+	:type function: function
+	:param priority: (Optional) Callback priority. Callbacks are executed in priority order.
+	:type priority: int
+	:param immediate: Execute this callback immediately on event occurance. default compresses multiple rapid events and delays until next idle.
+	:type immediate: bool
+	"""
 	callback = Callback(event, owner, function, priority, immediate)
 
 	#Check if event is registered
@@ -63,6 +102,14 @@ def addCallback(event, owner, function, priority=None, immediate=None):
 	callbacks.setdefault(event, {})[owner] = callback
 
 def removeCallback(event, owner):
+	"""
+	Remove a callback from an event
+
+	:param event: Event to remove callback for
+	:type event: str
+	:param owner: Name of callback owner to remove (See :py:func:`.addCallback`)
+	:type owner: str
+	"""
 	event_callbacks = callbacks.get(event, [])
 	if owner in event_callbacks:
 		event_callbacks.pop(owner)
@@ -94,14 +141,37 @@ def getCallbacks(event=None):
 
 
 def postEvent(event, *args, **kwargs):
-	print 'Post!'
+	"""
+	Post an event if possible.
+	Arguments are forwarded to postUserEvent/event_handler
+
+	:param event: Event to post
+	:type event: str
+	"""
 	if om.MUserEventMessage.isUserEvent(event):
-		print 'Post user event!'
 		om.MUserEventMessage.postUserEvent(event, *args, **kwargs)
 	else:
 		event_handler(event, *args, **kwargs)
 
 def addEvent(event, register_func, deregister_func, disable_undo=False, allow_deferred=False, deferred_low_priority=False, builtin=False):
+	"""
+	Define a new event for the system.
+
+	:param event: Event name
+	:type event: str
+	:param register_func: Function to register the event_handler for this event
+	:type register_func: function
+	:param deregister_func: Function to de-register the event_handler for this event (Passed the return from register_func if needed)
+	:type deregister_func: function
+	:param disable_undo: Disable the undo queue when calling callbacks, typically only needed for undo/redo based callbacks
+	:type disable_undo: bool
+	:param allow_deferred: Enable deffered callbacks, best for "rapid" events that do not need return values like SelecitonChanged. Uses evalDeferred.
+	:type allow_deferred: bool
+	:param deferred_low_priority: Use "Low priority" when deferring. Useful for *extremely* spammy events.
+	:type deferred_low_priority: bool
+	:param builtin: Flag as a builtin defined Event (From this callbacks.py module)
+	:type builtin: bool
+	"""
 	if event in getEvents() and not builtin:
 		raise ValueError('Duplicate event name!')
 	events[event] = Event(event, register_func, deregister_func, disable_undo, allow_deferred, deferred_low_priority, builtin)
@@ -109,12 +179,11 @@ def addEvent(event, register_func, deregister_func, disable_undo=False, allow_de
 def event_handler(event, *args, **kwargs):
 	"""
 
-	:param event:
-	:param args:
-	:param kwargs:
-	:return:
+	:param event: Event being handled
+	:param args: Positional arguments
+	:param kwargs: Keyword arguments
 	"""
-	print 'Event Handler!', event
+	log.info('Event: "%s" args: %s -- kwargs: %s'%(event, args, kwargs))
 	if event not in events:
 		log.error('Event handler called for event that is not supported! "%s"'%event)
 		return
@@ -177,6 +246,7 @@ def _registerEvent(event):
 			raise SystemError('Could not de-register old event handler, unable to re-register event: "%s"'%event)
 
 	event_handles[event] = events[event].register_func()
+	log.info('Registered event: "%s" got handle: "%s"'%(event, event_handles[event]))
 	return True
 
 def _deregisterEvent(event):
@@ -192,6 +262,7 @@ def _deregisterEvent(event):
 			events[event].deregister_func(handle)
 		else:
 			events[event].deregister_func()
+		log.debug('Deregistered event: "%s" with handle: "%s"'%(event, event_handles[event]))
 		del event_handles[event]
 		return True
 	except:
@@ -200,21 +271,28 @@ def _deregisterEvent(event):
 
 def make_user_event_funcs(event):
 	"""
+	Generate a set of register/deregister functions for a MUserEventMessage with the given name.
+	This is intended to make simple user events easier to implement.
 
-	:param event:
-	:return:
+	:param event: Event name to generate functions for
+	:return: Register Function, Deregister Function
+	:rtype: (rfunc, dfunc)
 	"""
 	def rfunc(event):
+		if om.MUserEventMessage.isUserEvent(event):
+			return -1
 		om.MUserEventMessage.registerUserEvent(event)
 		om.MUserEventMessage.addUserEventCallback(event, partial(event_handler, event))
 
-	def dfunc(event, id):
-		om.MMessage.removeCallback(id)
+	def dfunc(event, *args):
 		om.MUserEventMessage.deregisterUserEvent(event)
 
 	return partial(rfunc, event), partial(dfunc, event)
 
 def add_default_events():
+	"""
+	Populate the events list with some of the builtin events
+	"""
 	_temp = []
 	#Add builtin events
 	om.MEventMessage.getEventNames(_temp)
@@ -251,6 +329,7 @@ def add_default_events():
 
 
 	#Add scene check events
+	#(Event name, checkFile)
 	scene_check_events = [
 		('BeforeNewCheck', False),
 		('BeforeOpenCheck', True),
