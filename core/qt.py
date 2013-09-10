@@ -19,6 +19,7 @@ load_order = ['pyqt', 'pyside']
 
 #We have to import these the "hard" way rather than with __import__ because
 # some people like something called "Auto-Completion" :)
+qt_lib = None
 for library in load_order:
 	if library == 'pyside':
 		try:
@@ -71,7 +72,10 @@ for library in load_order:
 		break
 
 	elif library == 'pyqt':
-		import sip
+		try:
+			import sip
+		except:
+			continue
 		try:
 			sip.setapi('QDate', 2)
 			sip.setapi('QDateTime', 2)
