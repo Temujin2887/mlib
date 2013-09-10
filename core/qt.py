@@ -187,8 +187,13 @@ def loadUiFile(ui_path, appname=None, manage_settings=True):
 		Pyside lacks the "loadUiType" command :(
 		"""
 		loader = QtUiTools.QUiLoader()
-		form_class, base_class = loader.load(unicode(ui_path)), QtGui.QWidget
-		
+
+		f = QtCore.QFile(ui_path)
+		f.open(f.ReadOnly)
+		try:
+			form_class, base_class = loader.load(f), QtGui.QWidget
+		finally:
+			f.close()
 
 	if False: #Type hinting for pycharm/wing
 		base_class = QtGui.QWidget
