@@ -85,7 +85,7 @@ for library in load_order:
 			#Fetch the base_class and form class based on their type in the xml from designer
 			form_class = frame[winfo['uiclass']]
 			base_class = getattr(QtGui, winfo['baseclass'])
-		    return form_class, base_class
+			return form_class, base_class
 
 
 		qt_lib = library
