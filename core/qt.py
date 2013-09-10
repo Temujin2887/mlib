@@ -8,6 +8,7 @@ import inspect
 import subprocess
 import __main__
 
+
 from functools import partial, update_wrapper
 
 log = logging.getLogger(__name__)
@@ -26,8 +27,8 @@ for library in load_order:
 			from PySide import QtGui, QtCore
 			import shiboken
 			import pysideuic as uic
-			import xml.etree.cElementTree as xml
-			import cStringIO as StringIO
+			from pysideuic.Compiler import compiler
+			from cStringUI import StringIO
 		except ImportError as e:
 			continue
 
@@ -67,6 +68,25 @@ for library in load_order:
 		QtCore.pyqtSignal = QtCore.Signal
 		QtCore.pyqtSlot = QtCore.Slot
 		QtCore.pyqtProperty = QtCore.Property
+
+		def pyside_loadUiType(uiFile):
+			"""
+			Pyside lacks the "loadUiType" command, so we have to convert the ui file to py code in-memory first
+			and then execute it in a special frame to retrieve the form_class.
+			"""
+			o = StringIO()
+			with open(uiFile, 'r') as f:
+				winfo = compiler.UICompiler().compileUi(f, o, from_imports=False)
+			
+			frame = {}
+			pyc = compile(o.getvalue(), '<string>', 'exec')
+			exec pyc in frame
+
+			#Fetch the base_class and form class based on their type in the xml from designer
+			form_class = frame[winfo['uiclass']]
+			base_class = getattr(QtGui, winfo['baseclass'])
+		    return form_class, base_class
+
 
 		qt_lib = library
 		break
@@ -186,14 +206,7 @@ def loadUiFile(ui_path, appname=None, manage_settings=True):
 		"""
 		Pyside lacks the "loadUiType" command :(
 		"""
-		loader = QtUiTools.QUiLoader()
-
-		f = QtCore.QFile(ui_path)
-		f.open(f.ReadOnly)
-		try:
-			form_class, base_class = loader.load(f), QtGui.QWidget
-		finally:
-			f.close()
+		form_class, base_class = pyside_loadUiType(f)
 
 	if False: #Type hinting for pycharm/wing
 		base_class = QtGui.QWidget
