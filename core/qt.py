@@ -28,7 +28,7 @@ for library in load_order:
 			import shiboken
 			import pysideuic as uic
 			from pysideuic.Compiler import compiler
-			from cStringUI import StringIO
+			from cStringIO import StringIO
 		except ImportError as e:
 			continue
 
@@ -206,7 +206,7 @@ def loadUiFile(ui_path, appname=None, manage_settings=True):
 		"""
 		Pyside lacks the "loadUiType" command :(
 		"""
-		form_class, base_class = pyside_loadUiType(f)
+		form_class, base_class = pyside_loadUiType(ui_path)
 
 	if False: #Type hinting for pycharm/wing
 		base_class = QtGui.QWidget
