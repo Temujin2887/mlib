@@ -501,7 +501,7 @@ def unwrapinstance(obj):
 	if qt_lib == 'pyqt':
 		return sip.unwrapinstance(obj)
 	elif qt_lib == 'pyside':
-		return shiboken.getCppPointer(obj)
+		return long(shiboken.getCppPointer(obj))
 
 
 def isValid(widget):
