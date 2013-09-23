@@ -94,9 +94,7 @@ def getCallbacks(event=None):
 
 
 def postEvent(event, *args, **kwargs):
-	print 'Post!'
 	if om.MUserEventMessage.isUserEvent(event):
-		print 'Post user event!'
 		om.MUserEventMessage.postUserEvent(event, *args, **kwargs)
 	else:
 		event_handler(event, *args, **kwargs)
@@ -114,7 +112,6 @@ def event_handler(event, *args, **kwargs):
 	:param kwargs:
 	:return:
 	"""
-	print 'Event Handler!', event
 	if event not in events:
 		log.error('Event handler called for event that is not supported! "%s"'%event)
 		return

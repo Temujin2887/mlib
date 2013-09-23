@@ -1,0 +1,33 @@
+.shelf files for each shelf are lists of item guids
+
+.item files for each named item
+	define commands connected to each "slot"
+	define icon information
+	define label information
+	define new/highlight information
+	define stylesheet/visuals
+
+
+
+
+prefs/shelf2/
+	items/
+		.item files
+	.shelf files
+
+both items and commands are assigned guids
+	when duplicates are detected (Someone trying a copy/paste or manual editing error) assign a new guid
+	pick which item of the duplicates gets a new guid based on file age, if tied, base on alpha sort
+
+
+
+Shelf interaction:
+	modes: (left click)
+		button
+		instant popup
+		delayed popup
+		menuButton popup
+
+	custom context menu (Right click)
+		Define a custom indicator for this, standard language if any exists?
+		Arrow doesn't work, since it may be a delayed/instant popup. Must avoid bottom right corner, and probably top right as well

@@ -14,7 +14,10 @@ log = logging.getLogger(__name__)
 
 
 #Find the best way to provide a switch for the order....
-load_order = ['pyqt', 'pyside']
+if os.environ.get('qt_load_order'):
+	load_order = os.environ.get('qt_load_order').split()
+else:
+	load_order = ['pyqt', 'pyside']
 
 #We have to import these the "hard" way rather than with __import__ because
 # some people like something called "Auto-Completion" :)
