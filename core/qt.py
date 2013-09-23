@@ -235,6 +235,7 @@ class DesignerForm(object):
 		super(DesignerForm, self).__init__(parent)
 		self.setupUi(self) #Now run the setupUi function for the user
 		QtGui.qApp.aboutToQuit.connect(self.close)
+		self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
 		#Store initial settings for reset
 		self.__initial_settings = InitialSettings()
@@ -538,7 +539,6 @@ def closeAndCleanup(widget):
 		if widget.isVisible():
 			widget.close()
 		widget.deleteLater()
-
 
 #Settings management
 def getSettings(appName, unique=False, version=None):

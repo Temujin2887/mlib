@@ -10,9 +10,8 @@ import maya.cmds as cmds
 class ScriptEditorFilter(QtCore.QObject):
 	def eventFilter(self, obj, event):
 		if event == QtGui.QKeySequence.Paste and event.type() == QtCore.QEvent.KeyPress:
-			if isinstance(obj, QtGui.QWidget):
+			if isinstance(obj, QtGui.QTextEdit):
 				if obj.objectName().startswith('cmdScrollFieldExecuter'):
-					print 'Paste:', type(obj)
 					#Paste clipboard text this way, more reliable than Maya's check.
 					maya_widget = qt.widgetToPath(obj)
 					cmds.cmdScrollFieldExecuter(maya_widget, e=True, it=QtGui.qApp.clipboard().text())
