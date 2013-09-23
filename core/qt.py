@@ -27,9 +27,9 @@ for library in load_order:
 			from PySide import QtGui, QtCore
 			import shiboken
 			import pysideuic as uic
-			import xml.etree.cElementTree as xml
-			import cStringIO as StringIO
-		except ImportError:
+			from pysideuic.Compiler import compiler
+			from cStringIO import StringIO
+		except ImportError as e:
 			continue
 
 		try: from PySide import QtDeclarative
@@ -58,6 +58,8 @@ for library in load_order:
 		except: pass
 		try: from PySide import phonon
 		except: pass
+		try: from PySide import QtUiTools
+		except: pass 
 		try:
 			from PySide.phonon import Phonon
 			sys.modules[__name__+'.phonon'] = phonon
@@ -67,11 +69,33 @@ for library in load_order:
 		QtCore.pyqtSlot = QtCore.Slot
 		QtCore.pyqtProperty = QtCore.Property
 
+		def pyside_loadUiType(uiFile):
+			"""
+			Pyside lacks the "loadUiType" command, so we have to convert the ui file to py code in-memory first
+			and then execute it in a special frame to retrieve the form_class.
+			"""
+			o = StringIO()
+			with open(uiFile, 'r') as f:
+				winfo = compiler.UICompiler().compileUi(f, o, from_imports=False)
+			
+			frame = {}
+			pyc = compile(o.getvalue(), '<string>', 'exec')
+			exec pyc in frame
+
+			#Fetch the base_class and form class based on their type in the xml from designer
+			form_class = frame[winfo['uiclass']]
+			base_class = getattr(QtGui, winfo['baseclass'])
+			return form_class, base_class
+
+
 		qt_lib = library
 		break
 
 	elif library == 'pyqt':
-		import sip
+		try:
+			import sip
+		except:
+			continue
 		try:
 			sip.setapi('QDate', 2)
 			sip.setapi('QDateTime', 2)
@@ -181,25 +205,8 @@ def loadUiFile(ui_path, appname=None, manage_settings=True):
 	elif qt_lib == 'pyside':
 		"""
 		Pyside lacks the "loadUiType" command :(
-		so we have to convert the ui file to py code in-memory first
-		and then execute it in a special frame to retrieve the form_class.
 		"""
-		parsed = xml.parse(ui_path)
-		widget_class = parsed.find('widget').get('class')
-		form_class = parsed.find('class').text
-
-		with open(ui_path, 'r') as f:
-			o = StringIO()
-			frame = {}
-
-			#Compile to StringIO object
-			uic.compileUi(f, o, indent=0)
-			pyc = compile(o.getvalue(), '<string>', 'exec')
-			exec pyc in frame
-
-			#Fetch the base_class and form class based on their type in the xml from designer
-			form_class = frame['Ui_%s' % form_class]
-			base_class = eval('QtGui.%s' % widget_class)
+		form_class, base_class = pyside_loadUiType(ui_path)
 
 	if False: #Type hinting for pycharm/wing
 		base_class = QtGui.QWidget
@@ -494,7 +501,7 @@ def unwrapinstance(obj):
 	if qt_lib == 'pyqt':
 		return sip.unwrapinstance(obj)
 	elif qt_lib == 'pyside':
-		return shiboken.getCppPointer(obj)
+		return long(shiboken.getCppPointer(obj))
 
 
 def isValid(widget):
