@@ -77,7 +77,7 @@ def getEvents():
 	"""
 	return sorted(events.keys())
 
-def addCallback(event, owner, function, priority=None, immediate=None):
+def addCallback(event, owner, function, priority=None, immediate=False):
 	"""
 	Add a callback to an event
 
@@ -199,7 +199,7 @@ def event_handler(event, *args, **kwargs):
 	if immediate_callbacks:
 		log.debug('Event %s Callbacks: %s'%(event, immediate_callbacks))
 
-	add_to_queue = len(immediate_callbacks)<event_callbacks
+	add_to_queue = len(immediate_callbacks)<len(event_callbacks)
 	for callback in immediate_callbacks:
 		try:
 			if checkFile:
@@ -350,5 +350,33 @@ def add_default_events():
 		dfunc = om.MMessage.removeCallback
 
 		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=False, builtin=True)
+
+	# Add DG events
+	for nodeType in ["transform", "dependNode"]:
+		if nodeType == "dependNode":
+			nameSuffix = ""
+		else:
+			nameSuffix = nodeType
+
+		mevent = "NodeAddedDeferred"+nameSuffix
+		rfunc = partial(om.MDGMessage.addNodeAddedCallback, partial(event_handler, mevent), nodeType)
+		dfunc = om.MDGMessage.removeCallback
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=True, builtin=True)
+
+		mevent = "NodeRemovedDeferred"+nameSuffix
+		rfunc = partial(om.MDGMessage.addNodeRemovedCallback, partial(event_handler, mevent), nodeType)
+		dfunc = om.MDGMessage.removeCallback
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=True, builtin=True)
+
+		mevent = "NodeAdded"+nameSuffix
+		rfunc = partial(om.MDGMessage.addNodeAddedCallback, partial(event_handler, mevent), nodeType)
+		dfunc = om.MDGMessage.removeCallback
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=False, builtin=True)
+
+		mevent = "NodeRemoved"+nameSuffix
+		rfunc = partial(om.MDGMessage.addNodeRemovedCallback, partial(event_handler, mevent), nodeType)
+		dfunc = om.MDGMessage.removeCallback
+		addEvent(mevent, rfunc, dfunc, disable_undo=False, allow_deferred=False, builtin=True)
+
 
 add_default_events()
