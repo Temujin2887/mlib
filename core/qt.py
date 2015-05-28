@@ -235,7 +235,9 @@ class DesignerForm(object):
 		super(DesignerForm, self).__init__(parent)
 		self.setupUi(self) #Now run the setupUi function for the user
 		QtGui.qApp.aboutToQuit.connect(self.close)
-		self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
+		if not qt_lib == "pyside":
+			# This crashes pyside
+			self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
 		#Store initial settings for reset
 		self.__initial_settings = InitialSettings()
@@ -673,10 +675,16 @@ def saveLoadState(settings, widget, key=None, save=True):
 
 		###Checkable/Check widgets###
 		if isinstance(widget, QtGui.QCheckBox):
-			if save:
-				settings.setValue(key, widget.checkState())
+			if qt_lib == 'pyside':
+				if save:
+					settings.setValue(key, int(widget.checkState()))
+				else:
+					widget.setCheckState(QtCore.Qt.CheckState(int(value)))
 			else:
-				widget.setCheckState(int(value))
+				if save:
+					settings.setValue(key, widget.checkState())
+				else:
+					widget.setCheckState(int(value))
 
 		elif isinstance(widget, QtGui.QAbstractButton) and widget.isCheckable():
 			if save:
